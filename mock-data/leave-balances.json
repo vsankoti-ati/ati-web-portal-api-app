@@ -1,0 +1,38 @@
+[
+    {
+        "id": "leave-bal-001",
+        "employee_id": "emp-001",
+        "leave_type": "Earned",
+        "leave_balance": 15
+    },
+    {
+        "id": "leave-bal-002",
+        "employee_id": "emp-001",
+        "leave_type": "Holiday",
+        "leave_balance": 10
+    },
+    {
+        "id": "leave-bal-003",
+        "employee_id": "emp-002",
+        "leave_type": "Earned",
+        "leave_balance": 12
+    },
+    {
+        "id": "leave-bal-004",
+        "employee_id": "emp-002",
+        "leave_type": "Holiday",
+        "leave_balance": 10
+    },
+    {
+        "id": "leave-bal-005",
+        "employee_id": "emp-003",
+        "leave_type": "Earned",
+        "leave_balance": 18
+    },
+    {
+        "id": "leave-bal-006",
+        "employee_id": "emp-003",
+        "leave_type": "Holiday",
+        "leave_balance": 10
+    }
+]

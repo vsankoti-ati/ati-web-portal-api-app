@@ -1,0 +1,32 @@
+[
+    {
+        "id": "leave-app-001",
+        "employee_id": "emp-002",
+        "leave_type": "Earned",
+        "from_date": "2025-12-20",
+        "to_date": "2025-12-22",
+        "applied_date": "2025-11-15",
+        "status": "approved",
+        "comment": "Family vacation"
+    },
+    {
+        "id": "leave-app-002",
+        "employee_id": "emp-002",
+        "leave_type": "Holiday",
+        "from_date": "2025-12-25",
+        "to_date": "2025-12-26",
+        "applied_date": "2025-11-20",
+        "status": "pending",
+        "comment": "Christmas holidays"
+    },
+    {
+        "id": "leave-app-003",
+        "employee_id": "emp-004",
+        "leave_type": "Earned",
+        "from_date": "2025-11-28",
+        "to_date": "2025-11-29",
+        "applied_date": "2025-11-22",
+        "status": "pending",
+        "comment": "Personal work"
+    }
+]

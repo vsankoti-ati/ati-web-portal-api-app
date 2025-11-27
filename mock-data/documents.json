@@ -1,0 +1,67 @@
+[
+    {
+        "id": "doc-001",
+        "name": "Employee Handbook 2025",
+        "type": "handbook",
+        "category": "HR",
+        "description": "Official employee handbook for 2025",
+        "file_url": "/mock-files/employee-handbook-2025.pdf",
+        "file_size": 2048000,
+        "mime_type": "application/pdf",
+        "uploaded_by": "emp-003",
+        "is_active": true,
+        "created_at": "2025-01-01T10:00:00Z"
+    },
+    {
+        "id": "doc-002",
+        "name": "Code of Conduct",
+        "type": "policy",
+        "category": "HR",
+        "description": "Company code of conduct and ethics policy",
+        "file_url": "/mock-files/code-of-conduct.pdf",
+        "file_size": 1024000,
+        "mime_type": "application/pdf",
+        "uploaded_by": "emp-001",
+        "is_active": true,
+        "created_at": "2024-12-01T14:00:00Z"
+    },
+    {
+        "id": "doc-003",
+        "name": "Leave Application Form",
+        "type": "form",
+        "category": "HR",
+        "description": "Standard leave application form template",
+        "file_url": "/mock-files/leave-form.docx",
+        "file_size": 512000,
+        "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "uploaded_by": "emp-003",
+        "is_active": true,
+        "created_at": "2025-01-15T09:00:00Z"
+    },
+    {
+        "id": "doc-004",
+        "name": "IT Security Policy",
+        "type": "policy",
+        "category": "IT",
+        "description": "Information technology security guidelines",
+        "file_url": "/mock-files/it-security-policy.pdf",
+        "file_size": 1536000,
+        "mime_type": "application/pdf",
+        "uploaded_by": "emp-001",
+        "is_active": true,
+        "created_at": "2024-11-20T11:30:00Z"
+    },
+    {
+        "id": "doc-005",
+        "name": "Benefits Overview",
+        "type": "handbook",
+        "category": "HR",
+        "description": "Employee benefits and compensation overview",
+        "file_url": "/mock-files/benefits-overview.pdf",
+        "file_size": 3072000,
+        "mime_type": "application/pdf",
+        "uploaded_by": "emp-003",
+        "is_active": true,
+        "created_at": "2025-01-10T16:00:00Z"
+    }
+]

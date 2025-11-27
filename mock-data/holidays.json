@@ -1,0 +1,51 @@
+[
+    {
+        "id": "hol-001",
+        "year": 2025,
+        "client": "General",
+        "date": "2025-01-01",
+        "occasion": "New Year's Day"
+    },
+    {
+        "id": "hol-002",
+        "year": 2025,
+        "client": "General",
+        "date": "2025-07-04",
+        "occasion": "Independence Day"
+    },
+    {
+        "id": "hol-003",
+        "year": 2025,
+        "client": "General",
+        "date": "2025-12-25",
+        "occasion": "Christmas Day"
+    },
+    {
+        "id": "hol-004",
+        "year": 2025,
+        "client": "General",
+        "date": "2025-11-27",
+        "occasion": "Thanksgiving"
+    },
+    {
+        "id": "hol-005",
+        "year": 2025,
+        "client": "Client A",
+        "date": "2025-05-26",
+        "occasion": "Memorial Day"
+    },
+    {
+        "id": "hol-006",
+        "year": 2025,
+        "client": "Client A",
+        "date": "2025-09-01",
+        "occasion": "Labor Day"
+    },
+    {
+        "id": "hol-007",
+        "year": 2025,
+        "client": "Client B",
+        "date": "2025-02-17",
+        "occasion": "Presidents' Day"
+    }
+]

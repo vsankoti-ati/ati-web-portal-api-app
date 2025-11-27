@@ -1,0 +1,26 @@
+[
+    {
+        "id": "proj-001",
+        "name": "Client Portal Development",
+        "description": "Building a new client-facing portal",
+        "start_date": "2025-01-15",
+        "end_date": null,
+        "status": "active"
+    },
+    {
+        "id": "proj-002",
+        "name": "Mobile App Redesign",
+        "description": "Redesigning the mobile application UI/UX",
+        "start_date": "2025-02-01",
+        "end_date": null,
+        "status": "active"
+    },
+    {
+        "id": "proj-003",
+        "name": "Database Migration",
+        "description": "Migrating legacy database to new infrastructure",
+        "start_date": "2024-11-01",
+        "end_date": "2025-01-31",
+        "status": "completed"
+    }
+]

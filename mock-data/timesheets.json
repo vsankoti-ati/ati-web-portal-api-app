@@ -1,0 +1,32 @@
+[
+    {
+        "id": "ts-001",
+        "employee_id": "emp-002",
+        "start_date": "2025-11-18",
+        "end_date": "2025-11-24",
+        "status": "submitted",
+        "submission_date": "2025-11-24",
+        "approval_date": null,
+        "approved_by_employee_id": null
+    },
+    {
+        "id": "ts-002",
+        "employee_id": "emp-004",
+        "start_date": "2025-11-18",
+        "end_date": "2025-11-24",
+        "status": "approved",
+        "submission_date": "2025-11-24",
+        "approval_date": "2025-11-25",
+        "approved_by_employee_id": "emp-001"
+    },
+    {
+        "id": "ts-003",
+        "employee_id": "emp-005",
+        "start_date": "2025-11-18",
+        "end_date": "2025-11-24",
+        "status": "draft",
+        "submission_date": null,
+        "approval_date": null,
+        "approved_by_employee_id": null
+    }
+]

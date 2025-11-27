@@ -1,0 +1,29 @@
+[
+    {
+        "id": "ref-001",
+        "job_opening_id": "job-001",
+        "referred_by": "emp-002",
+        "candidate_id": "cand-001",
+        "referral_status": "screening",
+        "comment": "Former colleague, highly recommended",
+        "created_at": "2025-11-18T10:00:00Z"
+    },
+    {
+        "id": "ref-002",
+        "job_opening_id": "job-002",
+        "referred_by": "emp-005",
+        "candidate_id": "cand-002",
+        "referral_status": "interview",
+        "comment": "Met at design conference",
+        "created_at": "2025-11-20T14:30:00Z"
+    },
+    {
+        "id": "ref-003",
+        "job_opening_id": "job-003",
+        "referred_by": "emp-004",
+        "candidate_id": "cand-003",
+        "referral_status": "submitted",
+        "comment": "LinkedIn connection",
+        "created_at": "2025-11-22T09:15:00Z"
+    }
+]

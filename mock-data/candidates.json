@@ -1,0 +1,26 @@
+[
+    {
+        "id": "cand-001",
+        "name": "Alice Johnson",
+        "email": "alice.johnson@email.com",
+        "phone": "+1-555-1001",
+        "status": "screening",
+        "comment": "Strong React background"
+    },
+    {
+        "id": "cand-002",
+        "name": "Bob Williams",
+        "email": "bob.williams@email.com",
+        "phone": "+1-555-1002",
+        "status": "interview",
+        "comment": "Excellent portfolio"
+    },
+    {
+        "id": "cand-003",
+        "name": "Carol Martinez",
+        "email": "carol.martinez@email.com",
+        "phone": "+1-555-1003",
+        "status": "submitted",
+        "comment": "DevOps expert"
+    }
+]

@@ -1,0 +1,32 @@
+[
+    {
+        "id": "job-001",
+        "name": "Senior Full Stack Developer",
+        "role": "Software Development",
+        "job_description": "We are looking for an experienced Full Stack Developer to join our team. You will work on cutting-edge web applications using React, Node.js, and cloud technologies.",
+        "requirement": "5+ years experience in full stack development, proficiency in React, Node.js, TypeScript, SQL/NoSQL databases. Experience with AWS/Azure is a plus.",
+        "comment": "Immediate opening",
+        "created_by": "emp-001",
+        "created_at": "2025-11-01T10:00:00Z"
+    },
+    {
+        "id": "job-002",
+        "name": "UI/UX Designer",
+        "role": "Design",
+        "job_description": "Join our design team to create beautiful and intuitive user experiences. Work closely with product and engineering teams.",
+        "requirement": "3+ years of UI/UX design experience, proficiency in Figma, Adobe XD. Strong portfolio required.",
+        "comment": "Remote position available",
+        "created_by": "emp-003",
+        "created_at": "2025-11-10T14:00:00Z"
+    },
+    {
+        "id": "job-003",
+        "name": "DevOps Engineer",
+        "role": "Infrastructure",
+        "job_description": "Manage and optimize our cloud infrastructure. Implement CI/CD pipelines and ensure system reliability.",
+        "requirement": "4+ years DevOps experience, expertise in Docker, Kubernetes, Jenkins, AWS/Azure. Strong scripting skills.",
+        "comment": "Hybrid work model",
+        "created_by": "emp-001",
+        "created_at": "2025-11-15T09:00:00Z"
+    }
+]
