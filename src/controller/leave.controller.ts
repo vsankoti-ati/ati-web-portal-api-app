@@ -18,7 +18,7 @@ export class LeaveController {
         if (req.user.role === 'Admin') {
             return this.leaveService.getLeaveApplications(employeeId);
         }
-        return this.leaveService.getLeaveApplications(req.user.userId);
+        return this.leaveService.getLeaveApplications(employeeId);
     }
 
     @Post('apply')
