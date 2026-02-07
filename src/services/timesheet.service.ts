@@ -18,13 +18,13 @@ export class TimesheetService {
         private mockDataService: MockDataService,
     ) { }
 
-    async getTimesheets(employeeId?: string): Promise<any[]> {
+    async getTimesheets(userId?: string): Promise<any[]> {
         if (process.env.USE_MOCK_DATA === 'true') {
             const timesheets = this.mockDataService.getMockData('timesheets');
-            return employeeId ? timesheets.filter((t) => t.employee_id === employeeId) : timesheets;
+            return userId ? timesheets.filter((t) => t.user_id === userId) : timesheets;
         }
-        return employeeId
-            ? this.timesheetRepository.find({ where: { employee_id: employeeId } })
+        return userId
+            ? this.timesheetRepository.find({ where: { user_id: userId } })
             : this.timesheetRepository.find();
     }
 

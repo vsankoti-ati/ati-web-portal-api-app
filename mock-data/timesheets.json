@@ -1,7 +1,7 @@
 [
     {
         "id": "ts-001",
-        "employee_id": "emp-002",
+        "user_id": "emp-002",
         "week_start_date": "2025-11-18",
         "week_end_date": "2025-11-24",
         "status": "submitted",
@@ -11,7 +11,7 @@
     },
     {
         "id": "ts-002",
-        "employee_id": "emp-004",
+        "user_id": "emp-004",
         "week_start_date": "2025-11-18",
         "week_end_date": "2025-11-24",
         "status": "approved",
@@ -21,7 +21,7 @@
     },
     {
         "id": "ts-003",
-        "employee_id": "emp-005",
+        "user_id": "emp-005",
         "week_start_date": "2025-11-18",
         "week_end_date": "2025-11-24",
         "status": "draft",

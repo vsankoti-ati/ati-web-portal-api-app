@@ -1,6 +1,6 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn } from 'typeorm';
 
-@Entity()
+@Entity('time_entries')
 export class TimeEntry {
     @PrimaryGeneratedColumn('uuid')
     id: string;
@@ -14,15 +14,12 @@ export class TimeEntry {
     @Column({ type: 'date' })
     entry_date: Date;
 
-    @Column({ type: 'time' })
-    start_time: string;
-
-    @Column({ type: 'time' })
-    end_time: string;
-
     @Column({ type: 'decimal', precision: 5, scale: 2 })
-    hours_worked: number;
+    hours: number;
 
     @Column({ type: 'text', nullable: true })
-    notes: string;
+    description: string;
+
+    @CreateDateColumn()
+    created_at: Date;
 }

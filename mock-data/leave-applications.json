@@ -1,32 +1,41 @@
 [
     {
         "id": "leave-app-001",
-        "employee_id": "emp-002",
+        "user_id": "emp-002",
         "leave_type": "Earned",
-        "from_date": "2025-12-20",
-        "to_date": "2025-12-22",
-        "applied_date": "2025-11-15",
-        "status": "approved",
-        "comment": "Family vacation"
+        "start_date": "2025-12-20",
+        "end_date": "2025-12-22",
+        "days_requested": 3,
+        "reason": "Family vacation",
+        "status": "Approved",
+        "applied_date": "2025-11-15T00:00:00",
+        "approved_by": "emp-001",
+        "approved_date": "2025-11-16T00:00:00"
     },
     {
         "id": "leave-app-002",
-        "employee_id": "emp-002",
+        "user_id": "emp-002",
         "leave_type": "Holiday",
-        "from_date": "2025-12-25",
-        "to_date": "2025-12-26",
-        "applied_date": "2025-11-20",
-        "status": "pending",
-        "comment": "Christmas holidays"
+        "start_date": "2025-12-25",
+        "end_date": "2025-12-26",
+        "days_requested": 2,
+        "reason": "Christmas holidays",
+        "status": "Pending",
+        "applied_date": "2025-11-20T00:00:00",
+        "approved_by": null,
+        "approved_date": null
     },
     {
         "id": "leave-app-003",
-        "employee_id": "emp-004",
+        "user_id": "emp-004",
         "leave_type": "Earned",
-        "from_date": "2025-11-28",
-        "to_date": "2025-11-29",
-        "applied_date": "2025-11-22",
-        "status": "pending",
-        "comment": "Personal work"
+        "start_date": "2025-11-28",
+        "end_date": "2025-11-29",
+        "days_requested": 2,
+        "reason": "Personal work",
+        "status": "Pending",
+        "applied_date": "2025-11-22T00:00:00",
+        "approved_by": null,
+        "approved_date": null
     }
 ]

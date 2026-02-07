@@ -1,38 +1,56 @@
 [
     {
         "id": "leave-bal-001",
-        "employee_id": "emp-001",
+        "user_id": "emp-001",
         "leave_type": "Earned",
-        "leave_balance": 15
+        "total_days": 15,
+        "used_days": 0,
+        "remaining_days": 15,
+        "year": 2025
     },
     {
         "id": "leave-bal-002",
-        "employee_id": "emp-001",
+        "user_id": "emp-001",
         "leave_type": "Holiday",
-        "leave_balance": 10
+        "total_days": 10,
+        "used_days": 0,
+        "remaining_days": 10,
+        "year": 2025
     },
     {
         "id": "leave-bal-003",
-        "employee_id": "emp-002",
+        "user_id": "emp-002",
         "leave_type": "Earned",
-        "leave_balance": 12
+        "total_days": 12,
+        "used_days": 0,
+        "remaining_days": 12,
+        "year": 2025
     },
     {
         "id": "leave-bal-004",
-        "employee_id": "emp-002",
+        "user_id": "emp-002",
         "leave_type": "Holiday",
-        "leave_balance": 10
+        "total_days": 10,
+        "used_days": 0,
+        "remaining_days": 10,
+        "year": 2025
     },
     {
         "id": "leave-bal-005",
-        "employee_id": "emp-003",
+        "user_id": "emp-003",
         "leave_type": "Earned",
-        "leave_balance": 18
+        "total_days": 18,
+        "used_days": 0,
+        "remaining_days": 18,
+        "year": 2025
     },
     {
         "id": "leave-bal-006",
-        "employee_id": "emp-003",
+        "user_id": "emp-003",
         "leave_type": "Holiday",
-        "leave_balance": 10
+        "total_days": 10,
+        "used_days": 0,
+        "remaining_days": 10,
+        "year": 2025
     }
 ]

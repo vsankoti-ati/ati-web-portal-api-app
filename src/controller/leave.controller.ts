@@ -7,23 +7,23 @@ import { LeaveService } from '../services/leave.service';
 export class LeaveController {
     constructor(private leaveService: LeaveService) { }
 
-    @Get('balance/:employeeId')
-    async getLeaveBalance(@Param('employeeId') employeeId: string) {
-        return this.leaveService.getLeaveBalance(employeeId);
+    @Get('balance/:userId')
+    async getLeaveBalance(@Param('userId') userId: string) {
+        return this.leaveService.getLeaveBalance(userId);
     }
 
     @Get('applications')
-    async getLeaveApplications(@Query('employeeId') employeeId: string, @Request() req) {
+    async getLeaveApplications(@Query('userId') userId: string, @Request() req) {
         // Admin can see all, employees see their own
         if (req.user?.role === 'Admin') {
-            return this.leaveService.getLeaveApplications(employeeId);
+            return this.leaveService.getLeaveApplications(userId);
         }
-        return this.leaveService.getLeaveApplications(employeeId);
+        return this.leaveService.getLeaveApplications(userId);
     }
 
     @Post('apply')
     async applyLeave(@Body() leaveData: any, @Request() req) {
-        return this.leaveService.applyLeave({ ...leaveData});
+        return this.leaveService.applyLeave({ ...leaveData, user_id: req.user?.userId });
     }
 
     @Patch(':id/approve')

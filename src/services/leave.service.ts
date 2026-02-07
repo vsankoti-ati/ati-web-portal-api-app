@@ -3,9 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { LeaveApplication } from '../entities/leave-application.entity';
 import { Leave } from '../entities/leave.entity';
-import { Employee } from '../entities/employee.entity';
-import { MockDataService } from './mock-data.service';
 import { User } from 'src/entities/user.entity';
+import { MockDataService } from './mock-data.service';
 
 @Injectable()
 export class LeaveService {
@@ -14,26 +13,26 @@ export class LeaveService {
         private leaveAppRepository: Repository<LeaveApplication>,
         @InjectRepository(Leave)
         private leaveRepository: Repository<Leave>,
-        @InjectRepository(Employee)
-        private employeeRepository: Repository<Employee>,
+        @InjectRepository(User)
+        private userRepository: Repository<User>,
         private mockDataService: MockDataService,
     ) { }
 
-    async getLeaveBalance(employeeId: string): Promise<any[]> {
+    async getLeaveBalance(userId: string): Promise<any[]> {
         if (process.env.USE_MOCK_DATA === 'true') {
             const balances = this.mockDataService.getMockData('leave-balances');
-            return balances.filter((b) => b.employee_id === employeeId);
+            return balances.filter((b) => b.user_id === userId);
         }
-        return this.leaveRepository.find({ where: { employee_id: employeeId } });
+        return this.leaveRepository.find({ where: { user_id: userId } });
     }
 
-    async getLeaveApplications(employeeId?: string): Promise<any[]> {
+    async getLeaveApplications(userId?: string): Promise<any[]> {
         if (process.env.USE_MOCK_DATA === 'true') {
             const applications = this.mockDataService.getMockData('leave-applications');
-            return employeeId ? applications.filter((a) => a.employee_id === employeeId) : applications;
+            return userId ? applications.filter((a) => a.user_id === userId) : applications;
         }
-        return employeeId
-            ? this.leaveAppRepository.find({ where: { employee_id: employeeId } })
+        return userId
+            ? this.leaveAppRepository.find({ where: { user_id: userId } })
             : this.leaveAppRepository.find();
     }
 
@@ -45,26 +44,28 @@ export class LeaveService {
                 ...leaveData,
                 applied_date: new Date().toISOString().split('T')[0],
                 status: 'pending',
-                employee_id: leaveData.employee_id,
+                user_id: leaveData.user_id,
+                days_requested: Math.ceil((new Date(leaveData.end_date).getTime() - new Date(leaveData.start_date).getTime()) / (1000 * 60 * 60 * 24)) + 1,
             };
             applications.push(newApp);
             await this.mockDataService.saveMockData('leave-applications', applications);
             return newApp;
         }
         
-        // Validate that employee exists
-        const employee = await this.employeeRepository.findOne({ 
-            where: { id: leaveData.employee_id } 
+        // Validate that user exists
+        const user = await this.userRepository.findOne({ 
+            where: { id: leaveData.user_id } 
         });
         
-        if (!employee) {
-            throw new NotFoundException(`Employee with ID ${leaveData.employee_id} not found`);
+        if (!user) {
+            throw new NotFoundException(`User with ID ${leaveData.user_id} not found`);
         }
         
         const application = this.leaveAppRepository.create({
             ...leaveData,
             applied_date: new Date(),
             status: leaveData.status || 'pending',
+            days_requested: Math.ceil((new Date(leaveData.end_date).getTime() - new Date(leaveData.start_date).getTime()) / (1000 * 60 * 60 * 24)) + 1,
         });
         return this.leaveAppRepository.save(application);
     }

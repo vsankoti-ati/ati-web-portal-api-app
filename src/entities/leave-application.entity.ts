@@ -1,36 +1,42 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn, CreateDateColumn } from 'typeorm';
-import { Employee } from './employee.entity';
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { User } from './user.entity';
 
-@Entity()
+@Entity('leave_applications')
 export class LeaveApplication {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
     @Column()
-    employee_id: string;
+    user_id: string;
 
-    @ManyToOne(() => Employee)
-    @JoinColumn({ name: 'employee_id' })
-    employee: Employee;
+    @ManyToOne(() => User)
+    @JoinColumn({ name: 'user_id' })
+    user: User;
 
     @Column()
     leave_type: string; // Earned/Holiday/UnPaid
 
     @Column({ type: 'date' })
-    from_date: Date;
+    start_date: Date;
 
     @Column({ type: 'date' })
-    to_date: Date;
+    end_date: Date;
 
-    @Column({ type: 'date' })
+    @Column({ type: 'int' })
+    days_requested: number;
+
+    @Column({ type: 'text' })
+    reason: string;
+
+    @Column({ default: 'Pending' })
+    status: string; // Pending/Approved/Rejected
+
+    @Column({ type: 'datetime2' })
     applied_date: Date;
 
-    @Column({ default: 'pending' })
-    status: string; // pending/approved/rejected
+    @Column({ nullable: true })
+    approved_by: string;
 
-    @Column({ type: 'text', nullable: true })
-    comment: string;
-
-    @CreateDateColumn()
-    created_at: Date;
+    @Column({ type: 'datetime2', nullable: true })
+    approved_date: Date;
 }

@@ -1,21 +1,30 @@
 import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm';
-import { Employee } from './employee.entity';
+import { User } from './user.entity';
 
-@Entity()
+@Entity('leaves')
 export class Leave {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
     @Column()
-    employee_id: string;
+    user_id: string;
 
-    @ManyToOne(() => Employee)
-    @JoinColumn({ name: 'employee_id' })
-    employee: Employee;
+    @ManyToOne(() => User)
+    @JoinColumn({ name: 'user_id' })
+    user: User;
 
     @Column()
     leave_type: string; // Earned/Holiday/UnPaid
 
-    @Column({ type: 'decimal', precision: 5, scale: 2, default: 0 })
-    leave_balance: number;
+    @Column({ type: 'int' })
+    total_days: number;
+
+    @Column({ type: 'int', default: 0 })
+    used_days: number;
+
+    @Column({ type: 'int' })
+    remaining_days: number;
+
+    @Column({ type: 'int' })
+    year: number;
 }

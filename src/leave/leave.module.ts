@@ -5,10 +5,10 @@ import { LeaveApplication } from '../entities/leave-application.entity';
 import { LeaveService } from '../services/leave.service';
 import { LeaveController } from '../controller/leave.controller';
 import { MockDataModule } from '../services/mock-data.module';
-import { Employee } from 'src/entities/employee.entity';
+import { User } from 'src/entities/user.entity';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Leave, LeaveApplication, Employee]), MockDataModule],
+    imports: [TypeOrmModule.forFeature([Leave, LeaveApplication, User]), MockDataModule],
     controllers: [LeaveController],
     providers: [LeaveService],
     exports: [LeaveService],

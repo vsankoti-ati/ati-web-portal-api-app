@@ -6,7 +6,7 @@ export class Timesheet {
     id: string;
 
     @Column()
-    employee_id: string;
+    user_id: string;
 
     @Column({ type: 'date' })
     week_start_date: Date;

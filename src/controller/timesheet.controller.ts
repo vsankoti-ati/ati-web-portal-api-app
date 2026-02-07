@@ -8,10 +8,10 @@ export class TimesheetController {
     constructor(private timesheetService: TimesheetService) { }
 
     @Get()
-    async getTimesheets(@Query('employeeId') employeeId: string, @Request() req) {
+    async getTimesheets(@Query('userId') userId: string, @Request() req) {
         // Admin can see all, employees see their own
         if (req.user?.role === 'Admin') {
-            return this.timesheetService.getTimesheets(employeeId);
+            return this.timesheetService.getTimesheets(userId);
         }
         return this.timesheetService.getTimesheets(req.user?.userId);
     }
@@ -23,7 +23,7 @@ export class TimesheetController {
 
     @Post()
     async createTimesheet(@Body() timesheetData: any, @Request() req) {
-        return this.timesheetService.createTimesheet({ ...timesheetData, employee_id: req.user?.userId });
+        return this.timesheetService.createTimesheet({ ...timesheetData, user_id: req.user?.userId });
     }
 
     @Post('entries')
