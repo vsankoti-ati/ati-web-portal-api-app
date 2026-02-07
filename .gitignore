@@ -28,3 +28,4 @@ Thumbs.db
 # files in a certain directory, you might add that directory.
 # /migrations/
 # *.sqlite
+.fake

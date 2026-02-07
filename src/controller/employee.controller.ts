@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards, Request, UnauthorizedException } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { EmployeeService } from '../services/employee.service';
 
@@ -21,26 +21,29 @@ export class EmployeeController {
     }
 
     @Post()
+    @UseGuards(AuthGuard('jwt'))
     async createEmployee(@Body() employeeData: any, @Request() req) {
-        if (req.user.role !== 'Admin') {
-            throw new Error('Only admins can create employees');
+        if (req.user?.role !== 'Admin') {
+            throw new UnauthorizedException('Only admins can create employees');
         }
         return this.employeeService.create(employeeData);
     }
 
     @Put(':id')
+    @UseGuards(AuthGuard('jwt'))
     async updateEmployee(@Param('id') id: string, @Body() employeeData: any, @Request() req) {
         // Admin can update any, employees can update their own
-        if (req.user.role === 'Admin' || req.user.userId === id) {
+        if (req.user?.role === 'Admin' || req.user?.userId === id) {
             return this.employeeService.update(id, employeeData);
         }
-        throw new Error('Unauthorized');
+        throw new UnauthorizedException('Unauthorized');
     }
 
     @Delete(':id')
+    @UseGuards(AuthGuard('jwt'))
     async deleteEmployee(@Param('id') id: string, @Request() req) {
-        if (req.user.role !== 'Admin') {
-            throw new Error('Only admins can delete employees');
+        if (req.user?.role !== 'Admin') {
+            throw new UnauthorizedException('Only admins can delete employees');
         }
         return this.employeeService.delete(id);
     }

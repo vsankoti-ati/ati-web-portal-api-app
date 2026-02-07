@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Body, Param, UseGuards, Request, Query } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Body, Param, UseGuards, Request, Query, UnauthorizedException } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { LeaveService } from '../services/leave.service';
 
@@ -15,7 +15,7 @@ export class LeaveController {
     @Get('applications')
     async getLeaveApplications(@Query('employeeId') employeeId: string, @Request() req) {
         // Admin can see all, employees see their own
-        if (req.user.role === 'Admin') {
+        if (req.user?.role === 'Admin') {
             return this.leaveService.getLeaveApplications(employeeId);
         }
         return this.leaveService.getLeaveApplications(employeeId);
@@ -28,16 +28,16 @@ export class LeaveController {
 
     @Patch(':id/approve')
     async approveLeave(@Param('id') id: string, @Request() req) {
-        if (req.user.role !== 'Admin') {
-            throw new Error('Only admins can approve leave');
+        if (req.user?.role !== 'Admin') {
+            throw new UnauthorizedException('Only admins can approve leave');
         }
         return this.leaveService.approveLeave(id);
     }
 
     @Patch(':id/reject')
     async rejectLeave(@Param('id') id: string, @Request() req) {
-        if (req.user.role !== 'Admin') {
-            throw new Error('Only admins can reject leave');
+        if (req.user?.role !== 'Admin') {
+            throw new UnauthorizedException('Only admins can reject leave');
         }
         return this.leaveService.rejectLeave(id);
     }

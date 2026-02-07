@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Body, Param, UseGuards, Request, Query } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Body, Param, UseGuards, Request, Query, UnauthorizedException } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { TimesheetService } from '../services/timesheet.service';
 
@@ -10,10 +10,10 @@ export class TimesheetController {
     @Get()
     async getTimesheets(@Query('employeeId') employeeId: string, @Request() req) {
         // Admin can see all, employees see their own
-        if (req.user.role === 'Admin') {
+        if (req.user?.role === 'Admin') {
             return this.timesheetService.getTimesheets(employeeId);
         }
-        return this.timesheetService.getTimesheets(req.user.userId);
+        return this.timesheetService.getTimesheets(req.user?.userId);
     }
 
     @Get(':id')
@@ -23,7 +23,7 @@ export class TimesheetController {
 
     @Post()
     async createTimesheet(@Body() timesheetData: any, @Request() req) {
-        return this.timesheetService.createTimesheet({ ...timesheetData, employee_id: req.user.userId });
+        return this.timesheetService.createTimesheet({ ...timesheetData, employee_id: req.user?.userId });
     }
 
     @Post('entries')
@@ -38,10 +38,10 @@ export class TimesheetController {
 
     @Patch(':id/approve')
     async approveTimesheet(@Param('id') id: string, @Request() req) {
-        if (req.user.role !== 'Admin') {
-            throw new Error('Only admins can approve timesheets');
+        if (req.user?.role !== 'Admin') {
+            throw new UnauthorizedException('Only admins can approve timesheets');
         }
-        return this.timesheetService.approveTimesheet(id, req.user.userId);
+        return this.timesheetService.approveTimesheet(id, req.user?.userId);
     }
 
     @Get('projects/all')

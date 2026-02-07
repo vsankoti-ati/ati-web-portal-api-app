@@ -35,10 +35,13 @@ export const databaseConfig: TypeOrmModuleOptions = {
         Project,
         Announcement,
     ],
-    synchronize: false, //process.env.NODE_ENV !== 'production', // Auto-create tables in dev
+    migrations: [__dirname + '/migrations/**/*{.ts,.js}'],
+    migrationsTableName: 'migrations',
+    synchronize: false, // Auto-create tables in dev
+    migrationsRun: true, // Run migrations in prod
     logging: process.env.NODE_ENV === 'development',
     options: {
-        encrypt: false, // Set to true if using Azure SQL
-        trustServerCertificate: true, // For local development
+        encrypt: process.env.NODE_ENV === 'production', // Required for Azure SQL Database
+        trustServerCertificate: process.env.NODE_ENV === 'development', // Only true for local development
     },
-};
+} as TypeOrmModuleOptions;

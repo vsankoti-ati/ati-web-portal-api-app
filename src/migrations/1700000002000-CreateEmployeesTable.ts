@@ -10,7 +10,7 @@ export class CreateEmployeesTable1700000002000 implements MigrationInterface {
                         name: 'id',
                         type: 'uniqueidentifier',
                         isPrimary: true,
-                        default: 'NEWID()',
+                        default: 'NEWID()',  
                     },
                     {
                         name: 'first_name',

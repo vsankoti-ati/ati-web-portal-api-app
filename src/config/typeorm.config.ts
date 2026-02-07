@@ -7,12 +7,13 @@ export const typeOrmConfig: TypeOrmModuleOptions = {
     username: process.env.DB_USERNAME || 'sa',
     password: process.env.DB_PASSWORD || 'infy@123',
     database: process.env.DB_DATABASE || 'ati_web_portal',
-    entities: [__dirname + '/../**/*.entity.{js,ts}'],
-    synchronize: true,    
-    //migrationsRun: true,
+    entities: [__dirname + '/../entities/**/*.entity{.ts,.js}'],
+    migrations: [__dirname + '/../migrations/**/*{.ts,.js}'],
+    synchronize: false,
+    migrationsRun: true,
     logging: process.env.NODE_ENV === 'development',
     options: {
-        encrypt: false, // Use true for Azure SQL
-        trustServerCertificate: true, // For local SQL Server
+        encrypt: process.env.NODE_ENV === 'production', // Use true for Azure SQL
+        trustServerCertificate: process.env.NODE_ENV === 'development', // Only for local development
     },
-};
+} as TypeOrmModuleOptions;

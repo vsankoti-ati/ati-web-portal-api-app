@@ -1,6 +1,6 @@
 import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn } from 'typeorm';
 
-@Entity()
+@Entity('timesheets')
 export class Timesheet {
     @PrimaryGeneratedColumn('uuid')
     id: string;
@@ -9,10 +9,10 @@ export class Timesheet {
     employee_id: string;
 
     @Column({ type: 'date' })
-    start_date: Date;
+    week_start_date: Date;
 
     @Column({ type: 'date' })
-    end_date: Date;
+    week_end_date: Date;
 
     @Column({ default: 'draft' })
     status: string; // draft/submitted/approved

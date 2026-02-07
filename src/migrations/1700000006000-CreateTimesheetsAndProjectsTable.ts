@@ -44,6 +44,11 @@ export class CreateTimesheetsAndProjectsTable1700000006000 implements MigrationI
                         type: 'datetime2',
                         default: 'GETDATE()',
                     },
+                    {
+                        name: 'updated_at',
+                        type: 'datetime2',
+                        default: 'GETDATE()',
+                    },
                 ],
             }),
             true,

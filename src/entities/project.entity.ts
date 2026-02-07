@@ -1,6 +1,6 @@
 import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 
-@Entity()
+@Entity('projects')
 export class Project {
     @PrimaryGeneratedColumn('uuid')
     id: string;
@@ -22,7 +22,4 @@ export class Project {
 
     @CreateDateColumn()
     created_at: Date;
-
-    @UpdateDateColumn()
-    updated_at: Date;
 }

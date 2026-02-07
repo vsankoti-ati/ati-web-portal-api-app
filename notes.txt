@@ -1,0 +1,7 @@
+atiportal-dbadmin
+infy@123
+
+srividya.ramamoorthy@hotmail.com/infy@123
+    atidb-admin
+    infy@123
+    container registry: atiwebportalregistry

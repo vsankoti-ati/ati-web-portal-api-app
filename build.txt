@@ -1,0 +1,15 @@
+open docker desktop 
+run command - docker tag -t ati-web-portal-api-v1
+az login
+az acr login --name atiwebportal 
+
+docker build -t <<docker_image_name>> . Ex: docker build -t atiwebportal-api-v1.0 . 
+#docker tag atiwebportal-api-v1.0 atiwebportal.azurecr.io/ati-web-portal-api-v1:v1
+
+#docker push atiportalregistry.azurecr.io/ati-web-portal-api-v1:v1
+
+
+###srividya account
+docker build -t atiwebportal-api-v1.1 .
+docker tag atiwebportal-api-v1.1 atiwebportalregistry.azurecr.io/atiwebportal-api-v1.1:1.1
+docker push atiwebportalregistry.azurecr.io/atiwebportal-api-v1.1:1.1
