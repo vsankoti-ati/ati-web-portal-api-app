@@ -8,10 +8,11 @@ import { JwtModule } from '@nestjs/jwt';
 import { LocalStrategy } from './local.strategy';
 import { JwtStrategy } from './jwt.strategy';
 import { MockDataModule } from '../services/mock-data.module';
+import { Employee } from '../entities/employee.entity';
 
 @Module({
     imports: [
-        TypeOrmModule.forFeature([User]),
+        TypeOrmModule.forFeature([User, Employee]),
         PassportModule,
         JwtModule.register({
             secret: process.env.JWT_SECRET || 'secretKey',

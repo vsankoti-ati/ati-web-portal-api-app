@@ -27,6 +27,14 @@ export class EmployeeService {
         return this.employeeRepository.findOne({ where: { id } });
     }
 
+    async findByEmail(emailId: string): Promise<any> {
+        if (process.env.USE_MOCK_DATA === 'true') {
+            const employees = this.mockDataService.getMockData('employees');
+            return employees.find((e) => e.email_id === emailId);
+        }
+        return this.employeeRepository.findOne({ where: { email_id: emailId } });
+    }
+
     async create(employeeData: any): Promise<any> {
         if (process.env.USE_MOCK_DATA === 'true') {
             const employees = this.mockDataService.getMockData('employees');

@@ -6,6 +6,7 @@ import { User } from '../entities/user.entity';
 import * as bcrypt from 'bcrypt';
 import { MockDataService } from '../services/mock-data.service';
 import { config } from "dotenv";
+import { Employee } from 'src/entities/employee.entity';
 config();
 
 @Injectable()
@@ -13,6 +14,8 @@ export class AuthService {
     constructor(
         @InjectRepository(User)
         private usersRepository: Repository<User>,
+         @InjectRepository(Employee)
+        private employeeRepository: Repository<Employee>,
         private jwtService: JwtService,
         private mockDataService: MockDataService,
     ) { }
@@ -81,11 +84,19 @@ export class AuthService {
         // Hash the password
         const saltRounds = 10;
         const password_hash = await bcrypt.hash(createUserDto.password, saltRounds);
-
+        
+        // Get the employee associated with the email, if exists
+        const employee = await this.employeeRepository.findOne({ where: { email_id: createUserDto.email } });
+        if (employee) {
+            createUserDto.employee_id = employee.id;
+        }else{
+            createUserDto.employee_id = null; // Or handle as needed if no employee found
+        }
         // Create new user
         const newUser = this.usersRepository.create({
             username: createUserDto.username,
             email: createUserDto.email,
+            employee_id: createUserDto.employee_id,
             password_hash: password_hash,
             first_name: createUserDto.first_name,
             last_name: createUserDto.last_name,
@@ -105,5 +116,24 @@ export class AuthService {
             message: 'User registered successfully',
             user: result
         };
+    }
+
+    async getUserByEmployeeId(employeeId: string) {
+        if (process.env.USE_MOCK_DATA === 'true') {
+            const users = this.mockDataService.getMockData('users');
+            const user = users.find((u) => u.employee_id === employeeId);
+            if (user) {
+                const { password, ...result } = user;
+                return result;
+            }
+            return null;
+        }
+        
+        const user = await this.usersRepository.findOne({ where: { employee_id: employeeId } });
+        if (user) {
+            const { password_hash, ...result } = user;
+            return result;
+        }
+        return null;
     }
 }

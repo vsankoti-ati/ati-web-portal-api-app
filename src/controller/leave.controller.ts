@@ -41,4 +41,12 @@ export class LeaveController {
         }
         return this.leaveService.rejectLeave(id);
     }
+
+    @Post('balance')
+    async createLeaveBalance(@Body() balanceData: any, @Request() req) {
+        if (req.user?.role !== 'Admin' && req.user?.role !== 'HR') {
+            throw new UnauthorizedException('Only admins or HR can create leave balance');
+        }
+        return this.leaveService.createLeaveBalance(balanceData);
+    }
 }

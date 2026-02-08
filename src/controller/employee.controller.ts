@@ -13,6 +13,11 @@ export class EmployeeController {
         return this.employeeService.findAll();
     }
 
+    @Get('email/:emailId')
+    async getEmployeeByEmail(@Param('emailId') emailId: string) {
+        return this.employeeService.findByEmail(emailId);
+    }
+
     @Get(':id')
     async getEmployee(@Param('id') id: string, @Request() req) {
         console.log(`GET /employees/${id} - req.user:`, req.user);
