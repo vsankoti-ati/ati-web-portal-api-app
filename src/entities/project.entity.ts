@@ -1,4 +1,5 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
+import { TimeEntry } from './time-entry.entity';
 
 @Entity('projects')
 export class Project {
@@ -22,4 +23,7 @@ export class Project {
 
     @CreateDateColumn()
     created_at: Date;
+
+    @OneToMany(() => TimeEntry, (timeEntry) => timeEntry.project)
+    timeEntries: TimeEntry[];
 }

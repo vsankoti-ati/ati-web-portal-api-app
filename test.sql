@@ -1,5 +1,7 @@
 select * from dbo.users
 
+delete from dbo.users where id = 'bcd6f203-a1fd-4c57-80b6-d83313f3ca7b'
+
 update dbo.users set employee_id = '5163c1f5-f367-459f-9273-fb051728276c' where id='8d5c2966-7682-480e-86b5-5477e581619d'
 
 select * from dbo.employees

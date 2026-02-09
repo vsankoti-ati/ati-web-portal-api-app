@@ -1,4 +1,5 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Project } from './project.entity';
 
 @Entity('time_entries')
 export class TimeEntry {
@@ -10,6 +11,10 @@ export class TimeEntry {
 
     @Column()
     project_id: string;
+
+    @ManyToOne(() => Project)
+    @JoinColumn({ name: 'project_id' })
+    project: Project;
 
     @Column({ type: 'date' })
     entry_date: Date;

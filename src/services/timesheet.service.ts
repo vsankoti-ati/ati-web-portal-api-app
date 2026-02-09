@@ -5,6 +5,7 @@ import { Timesheet } from '../entities/timesheet.entity';
 import { TimeEntry } from '../entities/time-entry.entity';
 import { Project } from '../entities/project.entity';
 import { MockDataService } from './mock-data.service';
+import { User } from 'src/entities/user.entity';
 
 @Injectable()
 export class TimesheetService {
@@ -15,6 +16,8 @@ export class TimesheetService {
         private timeEntryRepository: Repository<TimeEntry>,
         @InjectRepository(Project)
         private projectRepository: Repository<Project>,
+        @InjectRepository(User)
+        private userRepository: Repository<User>,
         private mockDataService: MockDataService,
     ) { }
 
@@ -23,9 +26,25 @@ export class TimesheetService {
             const timesheets = this.mockDataService.getMockData('timesheets');
             return userId ? timesheets.filter((t) => t.user_id === userId) : timesheets;
         }
-        return userId
-            ? this.timesheetRepository.find({ where: { user_id: userId } })
-            : this.timesheetRepository.find();
+        
+        if(userId) {
+            const timesheets = await this.timesheetRepository.find({ 
+                where: { user_id: userId },
+                relations: ['user']
+            });
+            timesheets.forEach((t:any) => {
+                t.submitter = t.user ? `${t.user.first_name} ${t.user.last_name}` : 'Unknown';
+            });
+            return timesheets;
+        } else {
+            const timesheets = await this.timesheetRepository.find({
+                relations: ['user']
+            });
+            timesheets.forEach((t:any) => {
+                t.submitter = t.user ? `${t.user.first_name} ${t.user.last_name}` : 'Unknown';
+            });
+            return timesheets;
+        }
     }
 
     async getTimesheet(id: string): Promise<any> {
@@ -40,7 +59,7 @@ export class TimesheetService {
         }
         const timesheet = await this.timesheetRepository.findOne({ where: { id } });
         if (timesheet) {
-            const entries = await this.timeEntryRepository.find({ where: { timesheet_id: id } });
+            const entries = await this.timeEntryRepository.find({ where: { timesheet_id: id }, relations: ['project'] });
             return { ...timesheet, entries };
         }
         return null;
