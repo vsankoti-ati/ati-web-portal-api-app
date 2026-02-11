@@ -1,0 +1,42 @@
+import { MigrationInterface, QueryRunner } from "typeorm";
+
+export class Basemigrations1770814977387 implements MigrationInterface {
+    name = 'Basemigrations1770814977387'
+
+    public async up(queryRunner: QueryRunner): Promise<void> {
+        await queryRunner.query(`CREATE TABLE "employees" ("id" uniqueidentifier NOT NULL CONSTRAINT "DF_b9535a98350d5b26e7eb0c26af4" DEFAULT NEWSEQUENTIALID(), "first_name" nvarchar(255) NOT NULL, "last_name" nvarchar(255) NOT NULL, "role" nvarchar(255) NOT NULL, "email_id" nvarchar(255) NOT NULL, "phone_number" nvarchar(255), "date_of_birth" date, "date_of_joining" date NOT NULL, "is_active" bit NOT NULL CONSTRAINT "DF_52460e5878c4ceced49696b654c" DEFAULT 1, "created_at" datetime2 NOT NULL CONSTRAINT "DF_e1f508d74b2f061e0248c2769cf" DEFAULT getdate(), "updated_at" datetime2 NOT NULL CONSTRAINT "DF_37738e835c865a9caf4635757fe" DEFAULT getdate(), CONSTRAINT "UQ_64ffaa544aad24b5ee5748c2fa4" UNIQUE ("email_id"), CONSTRAINT "PK_b9535a98350d5b26e7eb0c26af4" PRIMARY KEY ("id"))`);
+        await queryRunner.query(`CREATE TABLE "users" ("id" uniqueidentifier NOT NULL CONSTRAINT "DF_a3ffb1c0c8416b9fc6f907b7433" DEFAULT NEWSEQUENTIALID(), "username" nvarchar(255) NOT NULL, "email" nvarchar(255) NOT NULL, "password_hash" nvarchar(255), "first_name" nvarchar(255) NOT NULL, "last_name" nvarchar(255) NOT NULL, "role" nvarchar(255) NOT NULL CONSTRAINT "DF_ace513fa30d485cfd25c11a9e4a" DEFAULT 'Employee', "is_email_verified" bit NOT NULL CONSTRAINT "DF_1abbfecef5aefa239aca51ccc54" DEFAULT 0, "is_active" bit NOT NULL CONSTRAINT "DF_20c7aea6112bef71528210f631d" DEFAULT 1, "auth_provider" nvarchar(255) NOT NULL, "azure_ad_id" nvarchar(255), "employee_id" uniqueidentifier, "created_at" datetime2 NOT NULL CONSTRAINT "DF_c9b5b525a96ddc2c5647d7f7fa5" DEFAULT getdate(), "updated_at" datetime2 NOT NULL CONSTRAINT "DF_6d596d799f9cb9dac6f7bf7c23c" DEFAULT getdate(), "last_login" datetime, "reset_token" nvarchar(255), "reset_token_expiry" datetime, CONSTRAINT "UQ_fe0bb3f6520ee0469504521e710" UNIQUE ("username"), CONSTRAINT "UQ_97672ac88f789774dd47f7c8be3" UNIQUE ("email"), CONSTRAINT "PK_a3ffb1c0c8416b9fc6f907b7433" PRIMARY KEY ("id"))`);
+        await queryRunner.query(`CREATE TABLE "leave_applications" ("id" uniqueidentifier NOT NULL CONSTRAINT "DF_d986913818cf9a2943d0dbe8f56" DEFAULT NEWSEQUENTIALID(), "user_id" uniqueidentifier NOT NULL, "leave_type" nvarchar(50) NOT NULL, "start_date" date NOT NULL, "end_date" date NOT NULL, "days_requested" int NOT NULL, "reason" nvarchar(MAX) NOT NULL, "status" nvarchar(20) NOT NULL CONSTRAINT "DF_53e354344b9ea90252e3fb078ff" DEFAULT 'Pending', "applied_date" datetime2 NOT NULL CONSTRAINT "DF_99a897e1d41f8664e23cc134a30" DEFAULT GETDATE(), "approved_by" uniqueidentifier, "approved_date" datetime2, "approver_name" nvarchar(MAX), "approver_comments" nvarchar(MAX), CONSTRAINT "PK_d986913818cf9a2943d0dbe8f56" PRIMARY KEY ("id"))`);
+        await queryRunner.query(`CREATE TABLE "leaves" ("id" uniqueidentifier NOT NULL CONSTRAINT "DF_4153ec7270da3d07efd2e11e2a7" DEFAULT NEWSEQUENTIALID(), "user_id" uniqueidentifier NOT NULL, "leave_type" nvarchar(255) NOT NULL, "total_days" int NOT NULL, "used_days" int NOT NULL CONSTRAINT "DF_1b5cc042eeaf2bbdc2fc155b554" DEFAULT 0, "remaining_days" int NOT NULL, "year" int NOT NULL, CONSTRAINT "PK_4153ec7270da3d07efd2e11e2a7" PRIMARY KEY ("id"))`);
+        await queryRunner.query(`CREATE TABLE "timesheets" ("id" uniqueidentifier NOT NULL CONSTRAINT "DF_1dc280b68c9353ecce41a34be71" DEFAULT NEWSEQUENTIALID(), "user_id" uniqueidentifier NOT NULL, "week_start_date" date NOT NULL, "week_end_date" date NOT NULL, "status" nvarchar(255) NOT NULL CONSTRAINT "DF_5323e538db5a38387d8aa302a4f" DEFAULT 'draft', "submission_date" date, "approval_date" date, "approved_by_employee_id" nvarchar(255), "created_at" datetime2 NOT NULL CONSTRAINT "DF_894244ee732381d7dad6f064f51" DEFAULT getdate(), CONSTRAINT "PK_1dc280b68c9353ecce41a34be71" PRIMARY KEY ("id"))`);
+        await queryRunner.query(`CREATE TABLE "projects" ("id" uniqueidentifier NOT NULL CONSTRAINT "DF_6271df0a7aed1d6c0691ce6ac50" DEFAULT NEWSEQUENTIALID(), "name" nvarchar(255) NOT NULL, "description" text, "start_date" date NOT NULL, "end_date" date, "status" nvarchar(255) NOT NULL, "created_at" datetime2 NOT NULL CONSTRAINT "DF_301eb04c3ee67cb2ab9cb2ab7b0" DEFAULT getdate(), "updated_at" datetime2 NOT NULL CONSTRAINT "DF_b9317874583ab06dcdd7a34c5b4" DEFAULT getdate(), CONSTRAINT "PK_6271df0a7aed1d6c0691ce6ac50" PRIMARY KEY ("id"))`);
+        await queryRunner.query(`CREATE TABLE "time_entries" ("id" uniqueidentifier NOT NULL CONSTRAINT "DF_b8bc5f10269ba2fe88708904aa0" DEFAULT NEWSEQUENTIALID(), "timesheet_id" nvarchar(255) NOT NULL, "project_id" uniqueidentifier NOT NULL, "entry_date" date NOT NULL, "hours" decimal(5,2) NOT NULL, "description" text, "created_at" datetime2 NOT NULL CONSTRAINT "DF_0c787eeb1af4e5c3a4d65c2d194" DEFAULT getdate(), CONSTRAINT "PK_b8bc5f10269ba2fe88708904aa0" PRIMARY KEY ("id"))`);
+        await queryRunner.query(`CREATE TABLE "holidays" ("id" uniqueidentifier NOT NULL CONSTRAINT "DF_3646bdd4c3817d954d830881dfe" DEFAULT NEWSEQUENTIALID(), "year" int NOT NULL, "client" nvarchar(255) NOT NULL, "date" date NOT NULL, "occasion" nvarchar(255) NOT NULL, "created_at" datetime2 NOT NULL CONSTRAINT "DF_b16a7636340302546228a2a81a8" DEFAULT getdate(), CONSTRAINT "PK_3646bdd4c3817d954d830881dfe" PRIMARY KEY ("id"))`);
+        await queryRunner.query(`CREATE TABLE "holiday_calendar" ("id" uniqueidentifier NOT NULL CONSTRAINT "DF_ab93ff20ee8d6d744896d9322a8" DEFAULT NEWSEQUENTIALID(), "year" int NOT NULL, "client" nvarchar(255) NOT NULL, "date" date NOT NULL, "occasion" nvarchar(255) NOT NULL, "comment" text, CONSTRAINT "PK_ab93ff20ee8d6d744896d9322a8" PRIMARY KEY ("id"))`);
+        await queryRunner.query(`CREATE TABLE "announcements" ("id" uniqueidentifier NOT NULL CONSTRAINT "DF_b3ad760876ff2e19d58e05dc8b0" DEFAULT NEWSEQUENTIALID(), "title" nvarchar(255) NOT NULL, "content" text NOT NULL, "category" nvarchar(255) NOT NULL, "priority" nvarchar(255) NOT NULL, "created_at" datetime2 NOT NULL CONSTRAINT "DF_541ba8781433f9ab045cc4330c2" DEFAULT getdate(), CONSTRAINT "PK_b3ad760876ff2e19d58e05dc8b0" PRIMARY KEY ("id"))`);
+        await queryRunner.query(`ALTER TABLE "users" ADD CONSTRAINT "FK_9760615d88ed518196bb79ea03d" FOREIGN KEY ("employee_id") REFERENCES "employees"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE "leave_applications" ADD CONSTRAINT "FK_cbfe12fab8ba5b6872163e9aad3" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE "leaves" ADD CONSTRAINT "FK_80500bfd86d628c5e9fdcb49fac" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE "timesheets" ADD CONSTRAINT "FK_e87f4a4a85cb9932938c695a692" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`);
+        await queryRunner.query(`ALTER TABLE "time_entries" ADD CONSTRAINT "FK_6fe2f6f6ff6ee8f772cda32025b" FOREIGN KEY ("project_id") REFERENCES "projects"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`);
+    }
+
+    public async down(queryRunner: QueryRunner): Promise<void> {
+        await queryRunner.query(`ALTER TABLE "time_entries" DROP CONSTRAINT "FK_6fe2f6f6ff6ee8f772cda32025b"`);
+        await queryRunner.query(`ALTER TABLE "timesheets" DROP CONSTRAINT "FK_e87f4a4a85cb9932938c695a692"`);
+        await queryRunner.query(`ALTER TABLE "leaves" DROP CONSTRAINT "FK_80500bfd86d628c5e9fdcb49fac"`);
+        await queryRunner.query(`ALTER TABLE "leave_applications" DROP CONSTRAINT "FK_cbfe12fab8ba5b6872163e9aad3"`);
+        await queryRunner.query(`ALTER TABLE "users" DROP CONSTRAINT "FK_9760615d88ed518196bb79ea03d"`);
+        await queryRunner.query(`DROP TABLE "announcements"`);
+        await queryRunner.query(`DROP TABLE "holiday_calendar"`);
+        await queryRunner.query(`DROP TABLE "holidays"`);
+        await queryRunner.query(`DROP TABLE "time_entries"`);
+        await queryRunner.query(`DROP TABLE "projects"`);
+        await queryRunner.query(`DROP TABLE "timesheets"`);
+        await queryRunner.query(`DROP TABLE "leaves"`);
+        await queryRunner.query(`DROP TABLE "leave_applications"`);
+        await queryRunner.query(`DROP TABLE "users"`);
+        await queryRunner.query(`DROP TABLE "employees"`);
+    }
+
+}

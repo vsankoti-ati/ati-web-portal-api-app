@@ -24,6 +24,9 @@ export class Project {
     @CreateDateColumn()
     created_at: Date;
 
+    @UpdateDateColumn()
+    updated_at: Date;
+
     @OneToMany(() => TimeEntry, (timeEntry) => timeEntry.project)
     timeEntries: TimeEntry[];
 }

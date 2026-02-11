@@ -29,3 +29,7 @@ Thumbs.db
 # /migrations/
 # *.sqlite
 .fake
+
+.env.production.srividya
+.env.production.ati
+.env.production
