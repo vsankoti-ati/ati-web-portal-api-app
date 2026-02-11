@@ -27,11 +27,11 @@ export class LeaveController {
     }
 
     @Patch(':id/approve')
-    async approveLeave(@Param('id') id: string, @Request() req) {
+    async approveLeave(@Param('id') id: string, @Body() approveDetails:any, @Request() req) {
         if (req.user?.role !== 'Admin') {
             throw new UnauthorizedException('Only admins can approve leave');
         }
-        return this.leaveService.approveLeave(id);
+        return this.leaveService.approveLeave(id, approveDetails.approver_comments, req.user);
     }
 
     @Patch(':id/reject')

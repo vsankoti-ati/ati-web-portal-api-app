@@ -38,6 +38,7 @@ export class HolidayService {
             return newHoliday;
         }
         const holiday = this.holidayRepository.create(holidayData);
+        
         return this.holidayRepository.save(holiday);
     }
 

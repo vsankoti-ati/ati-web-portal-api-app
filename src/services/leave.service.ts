@@ -33,8 +33,8 @@ export class LeaveService {
             return userId ? applications.filter((a) => a.user_id === userId) : applications;
         }
         const userLeaves = userId
-            ? this.leaveAppRepository.find({ where: { user_id: userId } })
-            : this.leaveAppRepository.find();
+            ? this.leaveAppRepository.find({ where: { user_id: userId }, relations: ['user'] })
+            : this.leaveAppRepository.find({ relations: ['user'] });
         
         return userLeaves;
     }
@@ -73,7 +73,7 @@ export class LeaveService {
         return this.leaveAppRepository.save(application);
     }
 
-    async approveLeave(id: string): Promise<any> {
+    async approveLeave(id: string, approverComments:string, approver: any): Promise<any> {
         if (process.env.USE_MOCK_DATA === 'true') {
             const applications = this.mockDataService.getMockData('leave-applications');
             const app = applications.find((a) => a.id === id);
@@ -100,7 +100,13 @@ export class LeaveService {
         }
         
         // Update application status
-        await this.leaveAppRepository.update(id, { status: 'Approved', approved_date: new Date() });
+        await this.leaveAppRepository.update(id,
+            {  
+                status: 'Approved',
+                approved_date: new Date(), 
+                approved_by: `${approver.first_name} ${approver.last_name}`, 
+                approver_comments: approver.approver_comments,         
+            });
         
         // Update leave balance
         const leaveBalance = await this.leaveRepository.findOne({
@@ -113,7 +119,8 @@ export class LeaveService {
         if (leaveBalance) {
             await this.leaveRepository.update(leaveBalance.id, {
                 used_days: leaveBalance.used_days + application.days_requested,
-                remaining_days: leaveBalance.remaining_days - application.days_requested
+                remaining_days: leaveBalance.remaining_days - application.days_requested,
+                year: new Date().getFullYear(),
             });
         }
         
@@ -162,6 +169,18 @@ export class LeaveService {
                 total_days: 10, 
                 year: balanceData.year,
                 remaining_days: balanceData.remaining_days, });
+        const existingRecord = await this.leaveRepository.findOne({
+            where: {
+                user_id: user.id,
+                leave_type: balanceData.leave_type,
+                year: balanceData.year,
+            }
+        });
+
+        if (existingRecord) {
+            return this.leaveRepository.save({id: existingRecord.id, ...leave});
+        }
+
         return this.leaveRepository.save(leave);
     }
 }

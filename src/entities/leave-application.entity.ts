@@ -13,7 +13,7 @@ export class LeaveApplication {
     @JoinColumn({ name: 'user_id' })
     user: User;
 
-    @Column()
+    @Column({ type: 'nvarchar', length: '50' })
     leave_type: string; // Earned/Holiday/UnPaid
 
     @Column({ type: 'date' })
@@ -25,18 +25,24 @@ export class LeaveApplication {
     @Column({ type: 'int' })
     days_requested: number;
 
-    @Column({ type: 'text' })
+    @Column({ type: 'nvarchar', length: 'MAX' })
     reason: string;
 
-    @Column({ default: 'Pending' })
+    @Column({ type: 'nvarchar', length: '20', default: "'Pending'" })
     status: string; // Pending/Approved/Rejected
 
-    @Column({ type: 'datetime2' })
+    @Column({ type: 'datetime2', default: () => 'GETDATE()' })
     applied_date: Date;
 
-    @Column({ nullable: true })
+    @Column({ type: 'uniqueidentifier', nullable: true })
     approved_by: string;
 
     @Column({ type: 'datetime2', nullable: true })
     approved_date: Date;
+
+    @Column({ type: 'nvarchar', length: 'MAX', nullable: true })
+    approver_name: string;
+
+    @Column({ type: 'nvarchar', length: 'MAX', nullable: true })
+    approver_comments: string;
 }
