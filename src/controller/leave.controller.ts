@@ -16,9 +16,9 @@ export class LeaveController {
     async getLeaveApplications(@Query('userId') userId: string, @Request() req) {
         // Admin can see all, employees see their own
         if (req.user?.role === 'Admin') {
-            return this.leaveService.getLeaveApplications(userId);
+            return this.leaveService.getLeaveApplications(req.user);
         }
-        return this.leaveService.getLeaveApplications(userId);
+        return this.leaveService.getLeaveApplications(req, userId);
     }
 
     @Post('apply')

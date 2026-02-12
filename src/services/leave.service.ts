@@ -3,7 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { LeaveApplication } from '../entities/leave-application.entity';
 import { Leave } from '../entities/leave.entity';
-import { User } from 'src/entities/user.entity';
+import { User } from '../entities/user.entity';
+import { ApprovalStatusEnum } from '../enum/approval-status-enum';
 
 @Injectable()
 export class LeaveService {
@@ -31,10 +32,10 @@ export class LeaveService {
         return leaveBalances;
     }
 
-    async getLeaveApplications(userId?: string): Promise<any[]> {
+    async getLeaveApplications(user: any, userId?: string): Promise<any[]> {
         const userLeaves = userId
-            ? this.leaveAppRepository.find({ where: { user_id: userId }, relations: ['user'] })
-            : this.leaveAppRepository.find({ relations: ['user'] });
+            ? this.leaveAppRepository.find({ where: { user_id: userId, user: { geo_location: user.geo_location } }, relations: ['user'] })
+            : this.leaveAppRepository.find({ where: {user: {geo_location: user.geo_location }}, relations: ['user'] });
         
         return userLeaves;
     }
@@ -72,7 +73,7 @@ export class LeaveService {
         
         // Update application status
         await this.leaveAppRepository.update(id, {
-            status: 'Approved',
+            status: ApprovalStatusEnum.Approved,
             approved_date: new Date(), 
             approved_by: approver.id, 
             approver_name: approver.name,
@@ -104,7 +105,7 @@ export class LeaveService {
         if (!this.isValidUUID(id)) {
             throw new BadRequestException('Invalid leave application ID format. Expected a valid UUID.');
         }
-        await this.leaveAppRepository.update(id, { status: 'rejected',  approved_date: new Date(), 
+        await this.leaveAppRepository.update(id, { status: ApprovalStatusEnum.Rejected,  approved_date: new Date(), 
             approved_by: approver.id, 
             approver_name: approver.name,
             approver_comments: approver.comments,    });

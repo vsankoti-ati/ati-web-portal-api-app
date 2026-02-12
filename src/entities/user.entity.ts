@@ -57,4 +57,7 @@ export class User {
 
     @Column({ nullable: true })
     reset_token_expiry: Date;
+
+    @Column({ nullable: true })
+    geo_location: string; 
 }

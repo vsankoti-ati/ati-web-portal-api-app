@@ -31,6 +31,9 @@ export class Timesheet {
     @Column({ nullable: true })
     approved_by_employee_id: string;
 
+    @Column({ nullable: true })
+    approver_comments: string;
+
     @CreateDateColumn()
     created_at: Date;
 }

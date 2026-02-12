@@ -5,6 +5,7 @@ import { Timesheet } from '../entities/timesheet.entity';
 import { TimeEntry } from '../entities/time-entry.entity';
 import { Project } from '../entities/project.entity';
 import { User } from 'src/entities/user.entity';
+import { ApprovalStatusEnum } from '../enum/approval-status-enum';
 
 @Injectable()
 export class TimesheetService {
@@ -19,7 +20,7 @@ export class TimesheetService {
         private userRepository: Repository<User>,
     ) { }
 
-    async getTimesheets(userId?: string): Promise<any[]> {
+    async getTimesheets(loggedInUser: any, userId?: string): Promise<any[]> {
         if(userId) {
             const timesheets = await this.timesheetRepository.find({ 
                 where: { user_id: userId },
@@ -31,7 +32,8 @@ export class TimesheetService {
             return timesheets;
         } else {
             const timesheets = await this.timesheetRepository.find({
-                relations: ['user']
+                relations: ['user'],
+                where: { user: { geo_location: loggedInUser.geo_location } }
             });
             timesheets.forEach((t:any) => {
                 t.submitter = t.user ? `${t.user.first_name} ${t.user.last_name}` : 'Unknown';
@@ -60,17 +62,18 @@ export class TimesheetService {
     }
 
     async submitTimesheet(id: string): Promise<any> {
-        await this.timesheetRepository.update(id, { status: 'submitted', submission_date: new Date() });
+        await this.timesheetRepository.update(id, { status: ApprovalStatusEnum.Submitted, submission_date: new Date() });
         const timesheet = await this.timesheetRepository.findOne({ where: { id } });
         const entries = await this.timeEntryRepository.find({ where: { timesheet_id: id }, relations: ['project'] });
         return { ...timesheet, entries };
     }
 
-    async approveTimesheet(id: string, approverId: string): Promise<any> {
+    async approveTimesheet(id: string, approver_comments: string, approverId: string): Promise<any> {
         await this.timesheetRepository.update(id, {
-            status: 'approved',
+            status: ApprovalStatusEnum.Approved,
             approval_date: new Date(),
             approved_by_employee_id: approverId,
+            approver_comments: approver_comments,
         });
 
         const timesheet = await this.timesheetRepository.findOne({ where: { id } });
@@ -79,10 +82,11 @@ export class TimesheetService {
         
     }
 
-    async rejectTimesheet(id: string, rejectedBy: string): Promise<any> {
+    async rejectTimesheet(id: string, approver_comments: string, rejectedBy: string): Promise<any> {
         await this.timesheetRepository.update(id, {
-            status: 'rejected',
+            status: ApprovalStatusEnum.Rejected,
             approved_by_employee_id: rejectedBy,
+            approver_comments: approver_comments,
         });
 
         const timesheet = await this.timesheetRepository.findOne({ where: { id } });

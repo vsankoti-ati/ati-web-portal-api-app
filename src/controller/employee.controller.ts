@@ -9,7 +9,6 @@ export class EmployeeController {
     @Get()
     @UseGuards(AuthGuard('jwt'))
     async getAllEmployees(@Request() req) {
-        console.log('GET /employees - req.user:', req.user);
         return this.employeeService.findAll(req.user);
     }
 

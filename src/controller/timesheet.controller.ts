@@ -11,9 +11,9 @@ export class TimesheetController {
     async getTimesheets(@Query('userId') userId: string, @Request() req) {
         // Admin can see all, employees see their own
         if (req.user?.role === 'Admin') {
-            return this.timesheetService.getTimesheets(userId);
+            return this.timesheetService.getTimesheets(req.user, userId);
         }
-        return this.timesheetService.getTimesheets(req.user?.userId);
+        return this.timesheetService.getTimesheets(req.user, req.user?.userId);
     }
 
     @Get(':id')
@@ -37,19 +37,19 @@ export class TimesheetController {
     }
 
     @Patch(':id/approve')
-    async approveTimesheet(@Param('id') id: string, @Request() req) {
+    async approveTimesheet(@Param('id') id: string, @Body() body:any, @Request() req) {
         if (req.user?.role !== 'Admin') {
             throw new UnauthorizedException('Only admins can approve timesheets');
         }
-        return this.timesheetService.approveTimesheet(id, req.user?.userId);
+        return this.timesheetService.approveTimesheet(id, body.approver_comments, req.user?.userId);
     }
 
     @Patch(':id/reject')
-    async rejectTimesheet(@Param('id') id: string, @Request() req) {
+    async rejectTimesheet(@Param('id') id: string, @Body() body: any, @Request() req) {
         if (req.user?.role !== 'Admin') {
             throw new UnauthorizedException('Only admins can reject timesheets');
         }
-        return this.timesheetService.rejectTimesheet(id, req.user?.userId);
+        return this.timesheetService.rejectTimesheet(id, body.approver_comments, req.user?.userId);
     }
 
     @Get('projects/all')
