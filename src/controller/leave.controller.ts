@@ -31,15 +31,15 @@ export class LeaveController {
         if (req.user?.role !== 'Admin') {
             throw new UnauthorizedException('Only admins can approve leave');
         }
-        return this.leaveService.approveLeave(id, approveDetails.approver_comments, req.user);
+        return this.leaveService.approveLeave(id, approveDetails.comments, req.user);
     }
 
     @Patch(':id/reject')
-    async rejectLeave(@Param('id') id: string, @Request() req) {
+    async rejectLeave(@Param('id') id: string, @Body() approveDetails:any, @Request() req) {
         if (req.user?.role !== 'Admin') {
             throw new UnauthorizedException('Only admins can reject leave');
         }
-        return this.leaveService.rejectLeave(id);
+        return this.leaveService.rejectLeave(id, approveDetails.comments, req.user);
     }
 
     @Post('balance')

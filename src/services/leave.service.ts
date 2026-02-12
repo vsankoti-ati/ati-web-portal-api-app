@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { LeaveApplication } from '../entities/leave-application.entity';
@@ -18,7 +18,17 @@ export class LeaveService {
         private mockDataService: MockDataService,
     ) { }
 
+    private isValidUUID(uuid: string): boolean {
+        // More permissive UUID regex that accepts any valid hex UUID format
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        return uuidRegex.test(uuid);
+    }
+
     async getLeaveBalance(userId: string): Promise<any[]> {
+        // Validate UUID format for non-mock data
+        if (process.env.USE_MOCK_DATA !== 'true' && !this.isValidUUID(userId)) {
+            throw new BadRequestException('Invalid user ID format. Expected a valid UUID.');
+        }
         if (process.env.USE_MOCK_DATA === 'true') {
             const balances = this.mockDataService.getMockData('leave-balances');
             return balances.filter((b) => b.user_id === userId);
@@ -74,6 +84,11 @@ export class LeaveService {
     }
 
     async approveLeave(id: string, approverComments:string, approver: any): Promise<any> {
+        // Validate UUID format
+        if (!this.isValidUUID(id)) {
+            throw new BadRequestException('Invalid leave application ID format. Expected a valid UUID.');
+        }
+
         if (process.env.USE_MOCK_DATA === 'true') {
             const applications = this.mockDataService.getMockData('leave-applications');
             const app = applications.find((a) => a.id === id);
@@ -100,13 +115,13 @@ export class LeaveService {
         }
         
         // Update application status
-        await this.leaveAppRepository.update(id,
-            {  
-                status: 'Approved',
-                approved_date: new Date(), 
-                approved_by: `${approver.first_name} ${approver.last_name}`, 
-                approver_comments: approver.approver_comments,         
-            });
+        await this.leaveAppRepository.update(id, {
+            status: 'Approved',
+            approved_date: new Date(), 
+            approved_by: approver.id, 
+            approver_name: approver.name,
+            approver_comments: approver.comments,         
+        });
         
         // Update leave balance
         const leaveBalance = await this.leaveRepository.findOne({
@@ -117,7 +132,8 @@ export class LeaveService {
         });
         
         if (leaveBalance) {
-            await this.leaveRepository.update(leaveBalance.id, {
+            await this.leaveRepository.save({
+                id: leaveBalance.id,
                 used_days: leaveBalance.used_days + application.days_requested,
                 remaining_days: leaveBalance.remaining_days - application.days_requested,
                 year: new Date().getFullYear(),
@@ -127,7 +143,11 @@ export class LeaveService {
         return this.leaveAppRepository.findOne({ where: { id } });
     }
 
-    async rejectLeave(id: string): Promise<any> {
+    async rejectLeave(id: string, approverComments:string, approver: any): Promise<any> {
+        // Validate UUID format
+        if (!this.isValidUUID(id)) {
+            throw new BadRequestException('Invalid leave application ID format. Expected a valid UUID.');
+        }
         if (process.env.USE_MOCK_DATA === 'true') {
             const applications = this.mockDataService.getMockData('leave-applications');
             const app = applications.find((a) => a.id === id);
@@ -137,7 +157,10 @@ export class LeaveService {
             }
             return app;
         }
-        await this.leaveAppRepository.update(id, { status: 'rejected' });
+        await this.leaveAppRepository.update(id, { status: 'rejected',  approved_date: new Date(), 
+            approved_by: approver.id, 
+            approver_name: approver.name,
+            approver_comments: approver.comments,    });
         return this.leaveAppRepository.findOne({ where: { id } });
     }
 

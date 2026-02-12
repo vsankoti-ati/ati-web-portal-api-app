@@ -44,6 +44,14 @@ export class TimesheetController {
         return this.timesheetService.approveTimesheet(id, req.user?.userId);
     }
 
+    @Patch(':id/reject')
+    async rejectTimesheet(@Param('id') id: string, @Request() req) {
+        if (req.user?.role !== 'Admin') {
+            throw new UnauthorizedException('Only admins can reject timesheets');
+        }
+        return this.timesheetService.rejectTimesheet(id, req.user?.userId);
+    }
+
     @Get('projects/all')
     async getAllProjects() {
         return this.timesheetService.getAllProjects();

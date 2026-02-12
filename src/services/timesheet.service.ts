@@ -107,7 +107,9 @@ export class TimesheetService {
             return timesheet;
         }
         await this.timesheetRepository.update(id, { status: 'submitted', submission_date: new Date() });
-        return this.timesheetRepository.findOne({ where: { id } });
+        const timesheet = await this.timesheetRepository.findOne({ where: { id } });
+        const entries = await this.timeEntryRepository.find({ where: { timesheet_id: id }, relations: ['project'] });
+        return { ...timesheet, entries };
     }
 
     async approveTimesheet(id: string, approverId: string): Promise<any> {
@@ -127,7 +129,33 @@ export class TimesheetService {
             approval_date: new Date(),
             approved_by_employee_id: approverId,
         });
-        return this.timesheetRepository.findOne({ where: { id } });
+
+        const timesheet = await this.timesheetRepository.findOne({ where: { id } });
+        const entries = await this.timeEntryRepository.find({ where: { timesheet_id: id }, relations: ['project'] });
+        return { ...timesheet, entries };    
+        
+    }
+
+    async rejectTimesheet(id: string, rejectedBy: string): Promise<any> {
+        if (process.env.USE_MOCK_DATA === 'true') {
+            const timesheets = this.mockDataService.getMockData('timesheets');
+            const timesheet = timesheets.find((t) => t.id === id);
+            if (timesheet) {
+                timesheet.status = 'rejected';
+                timesheet.rejection_date = new Date().toISOString().split('T')[0];
+                timesheet.rejected_by_employee_id = rejectedBy;
+                await this.mockDataService.saveMockData('timesheets', timesheets);
+            }
+            return timesheet;
+        }
+        await this.timesheetRepository.update(id, {
+            status: 'rejected',
+            approved_by_employee_id: rejectedBy,
+        });
+
+        const timesheet = await this.timesheetRepository.findOne({ where: { id } });
+        const entries = await this.timeEntryRepository.find({ where: { timesheet_id: id }, relations: ['project'] });
+        return { ...timesheet, entries };
     }
 
     async getAllProjects(): Promise<any[]> {
