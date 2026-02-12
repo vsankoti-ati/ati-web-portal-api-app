@@ -11,6 +11,14 @@ docker build -t <<docker_image_name>> . Ex: docker build -t atiwebportal-api-v1.
 
 
 ###srividya account
-docker build -t atiwebportal-api-v6.0 .
-docker tag atiwebportal-api-v6.0 atiwebportalregistry.azurecr.io/atiwebportal-api-v6.0:6.0
-docker push atiwebportalregistry.azurecr.io/atiwebportal-api-v6.0:6.0
+az acr login --name atiwebportalregistry 
+docker build -t atiwebportal-api-v6.1 .
+docker tag atiwebportal-api-v6.1 atiwebportalregistry.azurecr.io/atiwebportal-api-v6.1:6.1
+docker push atiwebportalregistry.azurecr.io/atiwebportal-api-v6.1:6.1
+
+
+###ATI account
+az acr login --name atiwebrepository
+docker build -t ati-web-portal-api .
+docker tag ati-web-portal-api atiwebrepository.azurecr.io/ati-web-portal-api:2.0
+docker push atiwebrepository.azurecr.io/ati-web-portal-api:2.0

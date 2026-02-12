@@ -6,11 +6,10 @@ import { Project } from '../entities/project.entity';
 import { TimesheetService } from '../services/timesheet.service';
 import { TimesheetController } from '../controller/timesheet.controller';
 import { ProjectController } from '../controller/project.controller';
-import { MockDataModule } from '../services/mock-data.module';
 import { User } from '../entities/user.entity';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Timesheet, TimeEntry, Project, User]), MockDataModule],
+    imports: [TypeOrmModule.forFeature([Timesheet, TimeEntry, Project, User])],
     controllers: [TimesheetController, ProjectController],
     providers: [TimesheetService],
     exports: [TimesheetService],

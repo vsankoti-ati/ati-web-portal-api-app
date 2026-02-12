@@ -1,3 +1,4 @@
+import { EmployeeEnum } from 'src/enum/employee-enum';
 import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 
 @Entity('employees')
@@ -28,6 +29,12 @@ export class Employee {
 
     @Column({ default: true })
     is_active: boolean;
+
+    @Column({ nullable: true })
+    admin_comments: string;
+
+    @Column({ nullable: false, default: EmployeeEnum.INDIA })
+    geo_location: EmployeeEnum; 
 
     @CreateDateColumn()
     created_at: Date;

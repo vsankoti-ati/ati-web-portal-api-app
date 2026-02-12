@@ -1,6 +1,10 @@
 select * from dbo.users
 
-delete from dbo.users where id = 'bcd6f203-a1fd-4c57-80b6-d83313f3ca7b'
+delete from dbo.time_entries
+
+delete from dbo.timesheets
+
+delete from dbo.users where id = '9c6380d8-0808-f111-832f-000d3afefa4d'
 
 update dbo.users set employee_id = '5163c1f5-f367-459f-9273-fb051728276c' where id='8d5c2966-7682-480e-86b5-5477e581619d'
 
@@ -8,7 +12,7 @@ select * from dbo.employees
 
 select * from dbo.leaves
 
-update dbo.users set role='Admin' where id= 'a9d2fba6-09a0-456b-8011-d0ebc413a346'
+update dbo.users set role='Admin' where id= '9c6380d8-0808-f111-832f-000d3afefa4d'
 
 delete from dbo.leaves where id = '4219f68e-62c1-4bdd-8323-b2b2e1642323'
 

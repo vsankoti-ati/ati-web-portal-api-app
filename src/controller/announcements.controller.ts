@@ -1,15 +1,22 @@
 import { Controller, Get, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { MockDataService } from '../services/mock-data.service';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Announcement } from '../entities/announcement.entity';
 
 @Controller('announcements')
 @UseGuards(AuthGuard('jwt'))
 export class AnnouncementsController {
-    constructor(private mockDataService: MockDataService) { }
+    constructor(
+        @InjectRepository(Announcement)
+        private announcementRepository: Repository<Announcement>,
+    ) { }
 
     @Get()
-    getAnnouncements() {
-        const announcements = this.mockDataService.getMockData('announcements');
-        return announcements.filter((a) => a.is_active).slice(0, 10);
+    async getAnnouncements() {
+        return this.announcementRepository.find({
+            take: 10,
+            order: { created_at: 'DESC' }
+        });
     }
 }

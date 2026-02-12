@@ -7,10 +7,10 @@ export class EmployeeController {
     constructor(private employeeService: EmployeeService) { }
 
     @Get()
+    @UseGuards(AuthGuard('jwt'))
     async getAllEmployees(@Request() req) {
         console.log('GET /employees - req.user:', req.user);
-        // For now, return all employees without auth check
-        return this.employeeService.findAll();
+        return this.employeeService.findAll(req.user);
     }
 
     @Get('email/:emailId')

@@ -7,7 +7,6 @@ import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { LocalStrategy } from './local.strategy';
 import { JwtStrategy } from './jwt.strategy';
-import { MockDataModule } from '../services/mock-data.module';
 import { Employee } from '../entities/employee.entity';
 
 @Module({
@@ -18,7 +17,6 @@ import { Employee } from '../entities/employee.entity';
             secret: process.env.JWT_SECRET || 'secretKey',
             signOptions: { expiresIn: '60m' },
         }),
-        MockDataModule,
     ],
     controllers: [AuthController],
     providers: [AuthService, LocalStrategy, JwtStrategy],

@@ -4,10 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../entities/user.entity';
 import * as bcrypt from 'bcrypt';
-import { MockDataService } from '../services/mock-data.service';
-import { config } from "dotenv";
 import { Employee } from 'src/entities/employee.entity';
-config();
 
 @Injectable()
 export class AuthService {
@@ -17,20 +14,9 @@ export class AuthService {
          @InjectRepository(Employee)
         private employeeRepository: Repository<Employee>,
         private jwtService: JwtService,
-        private mockDataService: MockDataService,
     ) { }
 
     async validateUser(username: string, pass: string): Promise<any> {
-        if (process.env.USE_MOCK_DATA === 'true') {
-            const mockUsers = this.mockDataService.getMockData('users');
-            const user = mockUsers.find((u) => u.username === username);
-            if (user && user.password === pass) { // Plain text for mock
-                const { password, ...result } = user;
-                return result;
-            }
-            return null;
-        }
-
         const user = await this.usersRepository.findOne({ where: { username } });
         if (user && (await bcrypt.compare(pass, user.password_hash))) {
             const { password_hash, ...result } = user;
@@ -40,32 +26,37 @@ export class AuthService {
     }
 
     async login(user: any) {
-        const payload = { username: user.username, sub: user.id, role: user.role };
+        let employeeDetails = null;
+        
+        // Get employee from database
+        if (user.employee_id) {
+            employeeDetails = await this.employeeRepository.findOne({ 
+                where: { id: user.employee_id } 
+            });
+        }
+
+        const payload = { 
+            username: user.username, 
+            sub: user.id, 
+            role: user.role,
+            employee_id: employeeDetails?.id || null,
+            email: user.email,
+            first_name: user.first_name,
+            last_name: user.last_name,
+            geo_location: employeeDetails?.geo_location || null
+        };
+        
         return {
             access_token: this.jwtService.sign(payload),
-            user: user,
+            user: {
+                ...user,
+                employee: employeeDetails
+            },
         };
     }
 
     async getProfile(userId: string) {
-        if (process.env.USE_MOCK_DATA === 'true') {
-            const users = this.mockDataService.getMockData('users');
-            const user = users.find((u) => u.id === userId);
-            if (user) {
-                const { password, ...result } = user;
-
-                // Find matching employee by email
-                const employees = this.mockDataService.getMockData('employees');
-                const employee = employees.find((e) => e.email_id === user.email);
-
-                return {
-                    ...result,
-                    employee_id: employee?.id || null,
-                };
-            }
-            return null;
-        }
-        return this.usersRepository.findOne({ where: { id: userId } });
+        return this.usersRepository.findOne({ where: { id: userId }, relations: ['employee'] });
     }
 
     async register(createUserDto: any) {
@@ -119,16 +110,6 @@ export class AuthService {
     }
 
     async getUserByEmployeeId(employeeId: string) {
-        if (process.env.USE_MOCK_DATA === 'true') {
-            const users = this.mockDataService.getMockData('users');
-            const user = users.find((u) => u.employee_id === employeeId);
-            if (user) {
-                const { password, ...result } = user;
-                return result;
-            }
-            return null;
-        }
-        
         const user = await this.usersRepository.findOne({ where: { employee_id: employeeId } });
         if (user) {
             const { password_hash, ...result } = user;
