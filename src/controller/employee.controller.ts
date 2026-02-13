@@ -37,7 +37,7 @@ export class EmployeeController {
     @UseGuards(AuthGuard('jwt'))
     async updateEmployee(@Param('id') id: string, @Body() employeeData: any, @Request() req) {
         // Admin can update any, employees can update their own
-        if (req.user?.role === 'Admin' || req.user?.userId === id) {
+        if (req.user?.role === 'Admin' || req.user?.employee_id === id) {
             return this.employeeService.update(id, employeeData);
         }
         throw new UnauthorizedException('Unauthorized');
