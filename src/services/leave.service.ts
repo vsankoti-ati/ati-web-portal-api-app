@@ -34,8 +34,8 @@ export class LeaveService {
 
     async getLeaveApplications(user: any, userId?: string): Promise<any[]> {
         const userLeaves = userId
-            ? this.leaveAppRepository.find({ where: { user_id: userId, user: { geo_location: user.geo_location } }, relations: ['user'] })
-            : this.leaveAppRepository.find({ where: {user: {geo_location: user.geo_location }}, relations: ['user'] });
+            ? await this.leaveAppRepository.find({ where: { user_id: userId, user: { geo_location: user.geo_location } }, relations: ['user'] })
+            : await this.leaveAppRepository.find({ where: {user: {geo_location: user.geo_location }}, relations: ['user'] });
         
         return userLeaves;
     }
@@ -77,7 +77,7 @@ export class LeaveService {
             approved_date: new Date(), 
             approved_by: approver.id, 
             approver_name: approver.name,
-            approver_comments: approver.comments,         
+            approver_comments: approverComments,         
         });
         
         // Update leave balance
@@ -108,7 +108,7 @@ export class LeaveService {
         await this.leaveAppRepository.update(id, { status: ApprovalStatusEnum.Rejected,  approved_date: new Date(), 
             approved_by: approver.id, 
             approver_name: approver.name,
-            approver_comments: approver.comments,    });
+            approver_comments: approverComments,    });
         return this.leaveAppRepository.findOne({ where: { id } });
     }
 
