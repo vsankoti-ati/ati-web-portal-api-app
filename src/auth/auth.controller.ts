@@ -1,6 +1,7 @@
 import { Controller, Request, Post, UseGuards, Body, Get, Param, UnauthorizedException } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
+import { JwtAuthGuard } from './jwt-auth.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -17,13 +18,14 @@ export class AuthController {
         return this.authService.register(createUserDto);
     }
 
-    @UseGuards(AuthGuard('jwt'))
+    @UseGuards(JwtAuthGuard)
     @Get('profile')
     async getProfile(@Request() req) {
+        console.log('✅ [AuthController] Successfully passed JWT guard! User:', req.user);
         return this.authService.getProfile(req.user.userId);
     }
 
-    @UseGuards(AuthGuard('jwt'))
+    @UseGuards(JwtAuthGuard)
     @Get('user/employee/:employeeId')
     async getUserByEmployeeId(@Param('employeeId') employeeId: string, @Request() req) {
         if (req.user?.role !== 'Admin' && req.user?.role !== 'HR') {

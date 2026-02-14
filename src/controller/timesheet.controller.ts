@@ -56,4 +56,12 @@ export class TimesheetController {
     async getAllProjects() {
         return this.timesheetService.getAllProjects();
     }
+
+    @Post('reports/generate')
+    async generateTimesheetReport(@Body() reportRequest: any, @Request() req) {
+        if (req.user?.role !== 'Admin') {
+            throw new UnauthorizedException('Only admins can generate reports');
+        }
+        return this.timesheetService.generateTimesheetReport(reportRequest, req.user);
+    }
 }

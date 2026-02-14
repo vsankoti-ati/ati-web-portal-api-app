@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In, MoreThanOrEqual, LessThanOrEqual } from 'typeorm';
 import { LeaveApplication } from '../entities/leave-application.entity';
 import { Leave } from '../entities/leave.entity';
 import { User } from '../entities/user.entity';
@@ -142,5 +142,180 @@ export class LeaveService {
         }
 
         return this.leaveRepository.save(leave);
+    }
+
+    async generateLeaveReport(reportRequest: any, admin: any): Promise<any> {
+        const { userIds = [], startDate, endDate, leaveTypes, includeBalance = true, includeApplications = true, status } = reportRequest;
+        
+        // Determine which users to generate reports for
+        let targetUsers: User[];
+        if (userIds.length === 0) {
+            // Empty array means all users
+            targetUsers = await this.userRepository.find({ where: { is_active: true, geo_location: admin.geo_location } });
+        } else {
+            // Fetch specific users
+            targetUsers = await this.userRepository.find({ 
+                where: { id: In(userIds), geo_location: admin.geo_location } 
+            });
+            
+            // Validate all user IDs exist
+            if (targetUsers.length !== userIds.length) {
+                const foundIds = targetUsers.map(u => u.id);
+                const notFoundIds = userIds.filter(id => !foundIds.includes(id));
+                throw new NotFoundException(`Users not found: ${notFoundIds.join(', ')}`);
+            }
+        }
+
+        const userReports = [];
+
+        for (const user of targetUsers) {
+            const report: any = {
+                user: {
+                    userId: user.id,
+                    username: user.username,
+                    email: user.email,
+                    firstName: user.first_name,
+                    lastName: user.last_name,
+                    employeeId: user.employee_id || null,
+                },
+                reportPeriod: {
+                    startDate: startDate || null,
+                    endDate: endDate || null,
+                },
+            };
+
+            // Fetch leave balance if requested
+            if (includeBalance) {
+                const leaveBalances = await this.leaveRepository.find({ 
+                    where: { user_id: user.id } 
+                });
+                
+                report.leaveBalance = leaveBalances.map(lb => ({
+                    leaveType: lb.leave_type,
+                    year: lb.year,
+                    totalDays: lb.total_days,
+                    usedDays: lb.used_days,
+                    remainingDays: lb.remaining_days,
+                }));
+            }
+
+            // Fetch leave applications if requested
+            if (includeApplications) {
+                const applicationQuery: any = { user_id: user.id };
+                
+                // Apply date filters using query builder for more complex conditions
+                let applications: LeaveApplication[];
+                
+                if (startDate && endDate) {
+                    // Get applications that overlap with the date range
+                    applications = await this.leaveAppRepository
+                        .createQueryBuilder('leave')
+                        .where('leave.user_id = :userId', { userId: user.id })
+                        .andWhere('leave.start_date <= :endDate', { endDate })
+                        .andWhere('leave.end_date >= :startDate', { startDate })
+                        .orderBy('leave.applied_date', 'DESC')
+                        .getMany();
+                } else if (startDate) {
+                    applications = await this.leaveAppRepository.find({
+                        where: { 
+                            user_id: user.id,
+                            end_date: MoreThanOrEqual(new Date(startDate))
+                        },
+                        order: { applied_date: 'DESC' }
+                    });
+                } else if (endDate) {
+                    applications = await this.leaveAppRepository.find({
+                        where: { 
+                            user_id: user.id,
+                            start_date: LessThanOrEqual(new Date(endDate))
+                        },
+                        order: { applied_date: 'DESC' }
+                    });
+                } else {
+                    applications = await this.leaveAppRepository.find({ 
+                        where: applicationQuery,
+                        order: { applied_date: 'DESC' }
+                    });
+                }
+
+                // Apply additional filters
+                if (leaveTypes && leaveTypes.length > 0) {
+                    applications = applications.filter(app => leaveTypes.includes(app.leave_type));
+                }
+                
+                if (status && status.length > 0) {
+                    applications = applications.filter(app => status.includes(app.status));
+                }
+
+                report.leaveApplications = applications.map(app => ({
+                    id: app.id,
+                    leaveType: app.leave_type,
+                    startDate: app.start_date,
+                    endDate: app.end_date,
+                    daysRequested: app.days_requested,
+                    reason: app.reason,
+                    status: app.status,
+                    appliedDate: app.applied_date,
+                    approvedBy: app.approved_by || null,
+                    approverName: app.approver_name || null,
+                    approvedDate: app.approved_date || null,
+                    approverComments: app.approver_comments || null,
+                }));
+
+                // Generate summary statistics
+                const totalApplications = applications.length;
+                const approvedApplications = applications.filter(app => app.status === 'Approved').length;
+                const pendingApplications = applications.filter(app => app.status === 'Pending' || app.status === 'pending').length;
+                const rejectedApplications = applications.filter(app => app.status === 'Rejected').length;
+
+                const totalDaysRequested = applications.reduce((sum, app) => sum + app.days_requested, 0);
+                const totalDaysApproved = applications
+                    .filter(app => app.status === 'Approved')
+                    .reduce((sum, app) => sum + app.days_requested, 0);
+
+                // Group by leave type
+                const byLeaveType: any = {};
+                applications.forEach(app => {
+                    if (!byLeaveType[app.leave_type]) {
+                        byLeaveType[app.leave_type] = {
+                            applications: 0,
+                            daysRequested: 0,
+                            daysApproved: 0,
+                        };
+                    }
+                    byLeaveType[app.leave_type].applications++;
+                    byLeaveType[app.leave_type].daysRequested += app.days_requested;
+                    if (app.status === 'Approved') {
+                        byLeaveType[app.leave_type].daysApproved += app.days_requested;
+                    }
+                });
+
+                report.summary = {
+                    totalApplications,
+                    approvedApplications,
+                    pendingApplications,
+                    rejectedApplications,
+                    totalDaysRequested,
+                    totalDaysApproved,
+                    byLeaveType,
+                };
+            }
+
+            userReports.push(report);
+        }
+
+        return {
+            success: true,
+            data: {
+                reports: userReports,
+                generatedAt: new Date(),
+                generatedBy: {
+                    userId: admin.userId || admin.id,
+                    username: admin.username || admin.name,
+                    role: admin.role,
+                },
+                totalUsers: userReports.length,
+            },
+        };
     }
 }

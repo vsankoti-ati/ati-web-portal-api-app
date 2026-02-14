@@ -49,8 +49,13 @@ export class AuthService {
             geo_location: employeeDetails?.geo_location || null
         };
         
+        const token = this.jwtService.sign(payload);
+        console.log('🔐 [AuthService] Login successful for user:', user.username);
+        console.log('   Payload:', payload);
+        console.log('   Generated token:', token.substring(0, 50) + '...');
+        
         return {
-            access_token: this.jwtService.sign(payload),
+            access_token: token,
             user: {
                 ...user,
                 employee: employeeDetails

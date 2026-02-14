@@ -9,18 +9,24 @@ import { LocalStrategy } from './local.strategy';
 import { JwtStrategy } from './jwt.strategy';
 import { Employee } from '../entities/employee.entity';
 import { EmailService } from './email.service';
+import { JwtAuthGuard } from './jwt-auth.guard';
+import { JWT_SECRET } from '../config/jwt.config';
 
 @Module({
     imports: [
         TypeOrmModule.forFeature([User, Employee]),
         PassportModule,
         JwtModule.register({
-            secret: process.env.JWT_SECRET || 'secretKey',
+            secret: JWT_SECRET,
             signOptions: { expiresIn: '60m' },
         }),
     ],
     controllers: [AuthController],
-    providers: [AuthService, LocalStrategy, JwtStrategy, EmailService],
+    providers: [AuthService, LocalStrategy, JwtStrategy, EmailService, JwtAuthGuard],
     exports: [AuthService, PassportModule, JwtStrategy],
 })
-export class AuthModule { }
+export class AuthModule {
+    constructor() {
+        console.log('🔧 [AuthModule] Initialized with JWT_SECRET:', JWT_SECRET);
+    }
+}

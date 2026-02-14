@@ -49,4 +49,12 @@ export class LeaveController {
         }
         return this.leaveService.createLeaveBalance(balanceData);
     }
+
+    @Post('reports/generate')
+    async generateLeaveReport(@Body() reportRequest: any, @Request() req) {
+        if (req.user?.role !== 'Admin') {
+            throw new UnauthorizedException('Only admins can generate reports');
+        }
+        return this.leaveService.generateLeaveReport(reportRequest, req.user);
+    }
 }
