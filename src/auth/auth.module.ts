@@ -8,6 +8,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { LocalStrategy } from './local.strategy';
 import { JwtStrategy } from './jwt.strategy';
 import { Employee } from '../entities/employee.entity';
+import { EmailService } from './email.service';
 
 @Module({
     imports: [
@@ -19,7 +20,7 @@ import { Employee } from '../entities/employee.entity';
         }),
     ],
     controllers: [AuthController],
-    providers: [AuthService, LocalStrategy, JwtStrategy],
+    providers: [AuthService, LocalStrategy, JwtStrategy, EmailService],
     exports: [AuthService, PassportModule, JwtStrategy],
 })
 export class AuthModule { }

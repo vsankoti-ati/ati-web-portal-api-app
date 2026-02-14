@@ -33,3 +33,5 @@ Thumbs.db
 .env.production.srividya
 .env.production.ati
 .env.production
+*.http
+*.sql
