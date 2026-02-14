@@ -65,7 +65,8 @@ export class AuthService {
             where: [
                 { username: createUserDto.username },
                 { email: createUserDto.email }
-            ]
+            ],
+            relations: ['employee']
         });
 
         if (existingUser) {
@@ -80,6 +81,7 @@ export class AuthService {
         const employee = await this.employeeRepository.findOne({ where: { email_id: createUserDto.email } });
         if (employee) {
             createUserDto.employee_id = employee.id;
+            createUserDto.geo_location = employee.geo_location; // Set geo_location based on employee
         }else{
             createUserDto.employee_id = null; // Or handle as needed if no employee found
         }
@@ -94,7 +96,8 @@ export class AuthService {
             role: createUserDto.role || 'Employee',
             auth_provider: 'Local',
             is_active: true,
-            is_email_verified: false
+            is_email_verified: false,
+            geo_location: createUserDto.geo_location,
         });
 
         // Save user to database

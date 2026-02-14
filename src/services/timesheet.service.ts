@@ -87,6 +87,7 @@ export class TimesheetService {
             status: ApprovalStatusEnum.Rejected,
             approved_by_employee_id: rejectedBy,
             approver_comments: approver_comments,
+            approval_date: new Date(),
         });
 
         const timesheet = await this.timesheetRepository.findOne({ where: { id } });
