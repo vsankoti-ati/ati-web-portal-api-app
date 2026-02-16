@@ -1,4 +1,5 @@
-import { EmployeeEnum } from 'src/enum/employee-enum';
+import { EmployeeEnum } from '../enum/employee-enum';
+import { EmployeeTypeEnum } from '../enum/employee-type-enum';
 import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 
 @Entity('employees')
@@ -35,6 +36,9 @@ export class Employee {
 
     @Column({ nullable: false, default: EmployeeEnum.INDIA })
     geo_location: EmployeeEnum; 
+
+    @Column({ nullable: false, default: EmployeeTypeEnum.FULL_TIME })
+    type: EmployeeTypeEnum; // Full-time/Part-time/Contract
 
     @CreateDateColumn()
     created_at: Date;

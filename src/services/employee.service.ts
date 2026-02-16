@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Employee } from '../entities/employee.entity';
 import { EmployeeEnum } from '../enum/employee-enum';
 
@@ -12,7 +12,8 @@ export class EmployeeService {
     ) { }
 
     async findAll(user: any): Promise<any[]> {
-        return this.employeeRepository.find({where : { is_active: true, geo_location: user.geo_location || EmployeeEnum.GlOBAL }});
+        const result = await this.employeeRepository.find({where : { is_active: true, geo_location: In([user.geo_location, EmployeeEnum.GLOBAL]) }});
+        return result;
     }
 
     async findOne(id: string): Promise<any> {
