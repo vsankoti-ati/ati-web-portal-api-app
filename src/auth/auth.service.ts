@@ -51,8 +51,7 @@ export class AuthService {
         
         const token = this.jwtService.sign(payload);
         console.log('🔐 [AuthService] Login successful for user:', user.username);
-        console.log('   Payload:', payload);
-        console.log('   Generated token:', token.substring(0, 50) + '...');
+        console.log('   Payload:', payload);        
         
         return {
             access_token: token,
