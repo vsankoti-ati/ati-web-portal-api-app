@@ -1,18 +1,28 @@
 import { Controller, Get, Post, Patch, Body, Param, UseGuards, Request, Query, UnauthorizedException } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam, ApiQuery } from '@nestjs/swagger';
 import { LeaveService } from '../services/leave.service';
 
+@ApiTags('Leave Management')
 @Controller('leave')
 @UseGuards(AuthGuard('jwt'))
+@ApiBearerAuth('JWT-auth')
 export class LeaveController {
     constructor(private leaveService: LeaveService) { }
 
     @Get('balance/:userId')
+    @ApiOperation({ summary: 'Get leave balance for a user' })
+    @ApiParam({ name: 'userId', description: 'User ID' })
+    @ApiResponse({ status: 200, description: 'Leave balance retrieved successfully' })
+    @ApiResponse({ status: 400, description: 'Invalid user ID format' })
     async getLeaveBalance(@Param('userId') userId: string) {
         return this.leaveService.getLeaveBalance(userId);
     }
 
     @Get('applications')
+    @ApiOperation({ summary: 'Get leave applications', description: 'Employees see own applications, Admins see all' })
+    @ApiQuery({ name: 'userId', required: false, description: 'Filter by user ID' })
+    @ApiResponse({ status: 200, description: 'Leave applications retrieved successfully' })
     async getLeaveApplications(@Query('userId') userId: string, @Request() req) {
         // Admin can see all, employees see their own
         if (req.user?.role === 'Admin') {

@@ -11,6 +11,7 @@ import { JobModule } from './job/job.module';
 import { HolidayModule } from './holiday/holiday.module';
 import { TimesheetModule } from './timesheet/timesheet.module';
 import { DocumentModule } from './document/document.module';
+import { WfhModule } from './wfh/wfh.module';
 import { Announcement } from './entities/announcement.entity';
 
 @Module({
@@ -24,6 +25,7 @@ import { Announcement } from './entities/announcement.entity';
         HolidayModule,
         TimesheetModule,
         DocumentModule,
+        WfhModule,
     ],
     controllers: [AppController, AnnouncementsController],
     providers: [AppService],

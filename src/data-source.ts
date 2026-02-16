@@ -10,6 +10,7 @@ import { Project } from './entities/project.entity';
 import { Holiday } from './entities/holiday.entity';
 import { HolidayCalendar } from './entities/holiday-calendar.entity';
 import { Announcement } from './entities/announcement.entity';
+import { WorkFromHomeRequest } from './entities/work-from-home-request.entity';
 // Uncomment these when you create migrations for them:
 // import { JobReferral } from './entities/job-referral.entity';
 // import { JobOpening } from './entities/job-opening.entity';
@@ -37,6 +38,7 @@ export const AppDataSource = new DataSource({
         Holiday,
         HolidayCalendar,
         Announcement,
+        WorkFromHomeRequest,
     ],
     migrations: [__dirname + '/migrations/**/*{.ts,.js}'],
     synchronize: false, // IMPORTANT: Always use migrations, never auto-sync
