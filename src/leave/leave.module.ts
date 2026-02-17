@@ -5,11 +5,13 @@ import { LeaveApplication } from '../entities/leave-application.entity';
 import { LeaveService } from '../services/leave.service';
 import { LeaveController } from '../controller/leave.controller';
 import { User } from 'src/entities/user.entity';
+import { LeaveEventListener } from './leave-event.listener';
+import { EmailService } from '../auth/email.service';
 
 @Module({
     imports: [TypeOrmModule.forFeature([Leave, LeaveApplication, User])],
     controllers: [LeaveController],
-    providers: [LeaveService],
+    providers: [LeaveService, LeaveEventListener, EmailService],
     exports: [LeaveService],
 })
 export class LeaveModule { }

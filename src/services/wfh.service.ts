@@ -1,8 +1,12 @@
 import { Injectable, NotFoundException, BadRequestException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { WorkFromHomeRequest } from '../entities/work-from-home-request.entity';
 import { User } from '../entities/user.entity';
+import { WfhApprovedEvent } from '../events/wfh-approved.event';
+import { WfhRejectedEvent } from '../events/wfh-rejected.event';
+import { WfhSubmittedEvent } from '../events/wfh-submitted.event';
 
 @Injectable()
 export class WfhService {
@@ -11,6 +15,7 @@ export class WfhService {
         private wfhRepository: Repository<WorkFromHomeRequest>,
         @InjectRepository(User)
         private userRepository: Repository<User>,
+        private eventEmitter: EventEmitter2,
     ) { }
 
     private isValidUUID(uuid: string): boolean {
@@ -49,7 +54,22 @@ export class WfhService {
             status: 'Pending',
         });
 
-        return this.wfhRepository.save(wfhRequest);
+        const savedRequest = await this.wfhRepository.save(wfhRequest);
+
+        // Emit event for email notification to admins
+        const wfhSubmittedEvent = new WfhSubmittedEvent(
+            savedRequest.id,
+            user.id,
+            user.email,
+            `${user.first_name} ${user.last_name}`,
+            startDate,
+            endDate,
+            requestData.reason,
+            user.geo_location,
+        );
+        this.eventEmitter.emit('wfh.submitted', wfhSubmittedEvent);
+
+        return savedRequest;
     }
 
     async getWfhRequests(user: any, userId?: string): Promise<WorkFromHomeRequest[]> {
@@ -90,8 +110,11 @@ export class WfhService {
             throw new BadRequestException('Invalid WFH request ID format. Expected a valid UUID.');
         }
         
-        // Get the WFH request
-        const request = await this.wfhRepository.findOne({ where: { id } });
+        // Get the WFH request with user details
+        const request = await this.wfhRepository.findOne({ 
+            where: { id },
+            relations: ['user']
+        });
         if (!request) {
             throw new NotFoundException(`WFH request with ID ${id} not found`);
         }
@@ -100,15 +123,35 @@ export class WfhService {
         if (request.status !== 'Pending') {
             throw new BadRequestException(`WFH request has already been ${request.status.toLowerCase()}`);
         }
+
+        // Get user details for email
+        const user = await this.userRepository.findOne({ where: { id: request.user_id } });
+        if (!user) {
+            throw new NotFoundException(`User with ID ${request.user_id} not found`);
+        }
         
         // Update request status
         await this.wfhRepository.update(id, {
             status: 'Approved',
             approved_date: new Date(), 
             approved_by: approver.userId, 
-            approver_name: approver.name,
+            approver_name: `${approver.first_name} ${approver.last_name}`,
             approver_comments: approverComments,         
         });
+
+        // Emit event for email notification
+        const wfhApprovedEvent = new WfhApprovedEvent(
+            request.id,
+            user.id,
+            user.email,
+            `${user.first_name} ${user.last_name}`,
+            request.start_date,
+            request.end_date,
+            request.reason,
+            `${approver.first_name} ${approver.last_name}`,
+            approverComments || '',
+        );
+        this.eventEmitter.emit('wfh.approved', wfhApprovedEvent);
         
         return this.wfhRepository.findOne({ where: { id }, relations: ['user'] });
     }
@@ -119,8 +162,11 @@ export class WfhService {
             throw new BadRequestException('Invalid WFH request ID format. Expected a valid UUID.');
         }
         
-        // Get the WFH request
-        const request = await this.wfhRepository.findOne({ where: { id } });
+        // Get the WFH request with user details
+        const request = await this.wfhRepository.findOne({ 
+            where: { id },
+            relations: ['user']
+        });
         if (!request) {
             throw new NotFoundException(`WFH request with ID ${id} not found`);
         }
@@ -129,15 +175,35 @@ export class WfhService {
         if (request.status !== 'Pending') {
             throw new BadRequestException(`WFH request has already been ${request.status.toLowerCase()}`);
         }
+
+        // Get user details for email
+        const user = await this.userRepository.findOne({ where: { id: request.user_id } });
+        if (!user) {
+            throw new NotFoundException(`User with ID ${request.user_id} not found`);
+        }
         
         // Update request status
         await this.wfhRepository.update(id, {
             status: 'Rejected',
             approved_date: new Date(), 
             approved_by: approver.userId, 
-            approver_name: approver.name,
+            approver_name: `${approver.first_name} ${approver.last_name}`,
             approver_comments: approverComments,         
         });
+
+        // Emit event for email notification
+        const wfhRejectedEvent = new WfhRejectedEvent(
+            request.id,
+            user.id,
+            user.email,
+            `${user.first_name} ${user.last_name}`,
+            request.start_date,
+            request.end_date,
+            request.reason,
+            `${approver.first_name} ${approver.last_name}`,
+            approverComments || '',
+        );
+        this.eventEmitter.emit('wfh.rejected', wfhRejectedEvent);
         
         return this.wfhRepository.findOne({ where: { id }, relations: ['user'] });
     }

@@ -1,11 +1,15 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In, MoreThanOrEqual, LessThanOrEqual, Between } from 'typeorm';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Timesheet } from '../entities/timesheet.entity';
 import { TimeEntry } from '../entities/time-entry.entity';
 import { Project } from '../entities/project.entity';
 import { User } from 'src/entities/user.entity';
 import { ApprovalStatusEnum } from '../enum/approval-status-enum';
+import { TimesheetApprovedEvent } from '../events/timesheet-approved.event';
+import { TimesheetRejectedEvent } from '../events/timesheet-rejected.event';
+import { TimesheetSubmittedEvent } from '../events/timesheet-submitted.event';
 
 @Injectable()
 export class TimesheetService {
@@ -18,6 +22,7 @@ export class TimesheetService {
         private projectRepository: Repository<Project>,
         @InjectRepository(User)
         private userRepository: Repository<User>,
+        private eventEmitter: EventEmitter2,
     ) { }
 
     async getTimesheets(loggedInUser: any, userId?: string): Promise<any[]> {
@@ -62,13 +67,59 @@ export class TimesheetService {
     }
 
     async submitTimesheet(id: string): Promise<any> {
+        // Get timesheet with user details
+        const timesheet = await this.timesheetRepository.findOne({ 
+            where: { id },
+            relations: ['user']
+        });
+        if (!timesheet) {
+            throw new NotFoundException(`Timesheet with ID ${id} not found`);
+        }
+
+        const user = await this.userRepository.findOne({ where: { id: timesheet.user_id } });
+        if (!user) {
+            throw new NotFoundException(`User with ID ${timesheet.user_id} not found`);
+        }
+
         await this.timesheetRepository.update(id, { status: ApprovalStatusEnum.Submitted, submission_date: new Date() });
-        const timesheet = await this.timesheetRepository.findOne({ where: { id } });
+        const updatedTimesheet = await this.timesheetRepository.findOne({ where: { id } });
         const entries = await this.timeEntryRepository.find({ where: { timesheet_id: id }, relations: ['project'] });
-        return { ...timesheet, entries };
+
+        // Emit event for email notification to admins
+        const timesheetSubmittedEvent = new TimesheetSubmittedEvent(
+            updatedTimesheet.id,
+            user.id,
+            user.email,
+            `${user.first_name} ${user.last_name}`,
+            updatedTimesheet.week_start_date,
+            updatedTimesheet.week_end_date,
+            user.geo_location,
+        );
+        this.eventEmitter.emit('timesheet.submitted', timesheetSubmittedEvent);
+
+        return { ...updatedTimesheet, entries };
     }
 
     async approveTimesheet(id: string, approver_comments: string, approverId: string): Promise<any> {
+        // Get the timesheet with user details before updating
+        const timesheet = await this.timesheetRepository.findOne({ 
+            where: { id },
+            relations: ['user']
+        });
+        if (!timesheet) {
+            throw new NotFoundException(`Timesheet with ID ${id} not found`);
+        }
+
+        // Get user details for email
+        const user = await this.userRepository.findOne({ where: { id: timesheet.user_id } });
+        if (!user) {
+            throw new NotFoundException(`User with ID ${timesheet.user_id} not found`);
+        }
+
+        // Get approver details
+        const approver = await this.userRepository.findOne({ where: { id: approverId } });
+        const approverName = approver ? `${approver.first_name} ${approver.last_name}` : 'Admin';
+
         await this.timesheetRepository.update(id, {
             status: ApprovalStatusEnum.Approved,
             approval_date: new Date(),
@@ -76,13 +127,45 @@ export class TimesheetService {
             approver_comments: approver_comments,
         });
 
-        const timesheet = await this.timesheetRepository.findOne({ where: { id } });
+        const updatedTimesheet = await this.timesheetRepository.findOne({ where: { id } });
         const entries = await this.timeEntryRepository.find({ where: { timesheet_id: id }, relations: ['project'] });
-        return { ...timesheet, entries };    
-        
+
+        // Emit event for email notification
+        const timesheetApprovedEvent = new TimesheetApprovedEvent(
+            timesheet.id,
+            user.id,
+            user.email,
+            `${user.first_name} ${user.last_name}`,
+            timesheet.week_start_date,
+            timesheet.week_end_date,
+            approverName,
+            approver_comments || '',
+        );
+        this.eventEmitter.emit('timesheet.approved', timesheetApprovedEvent);
+
+        return { ...updatedTimesheet, entries };    
     }
 
     async rejectTimesheet(id: string, approver_comments: string, rejectedBy: string): Promise<any> {
+        // Get the timesheet with user details before updating
+        const timesheet = await this.timesheetRepository.findOne({ 
+            where: { id },
+            relations: ['user']
+        });
+        if (!timesheet) {
+            throw new NotFoundException(`Timesheet with ID ${id} not found`);
+        }
+
+        // Get user details for email
+        const user = await this.userRepository.findOne({ where: { id: timesheet.user_id } });
+        if (!user) {
+            throw new NotFoundException(`User with ID ${timesheet.user_id} not found`);
+        }
+
+        // Get approver details
+        const approver = await this.userRepository.findOne({ where: { id: rejectedBy } });
+        const approverName = approver ? `${approver.first_name} ${approver.last_name}` : 'Admin';
+
         await this.timesheetRepository.update(id, {
             status: ApprovalStatusEnum.Rejected,
             approved_by_employee_id: rejectedBy,
@@ -90,9 +173,23 @@ export class TimesheetService {
             approval_date: new Date(),
         });
 
-        const timesheet = await this.timesheetRepository.findOne({ where: { id } });
+        const updatedTimesheet = await this.timesheetRepository.findOne({ where: { id } });
         const entries = await this.timeEntryRepository.find({ where: { timesheet_id: id }, relations: ['project'] });
-        return { ...timesheet, entries };
+
+        // Emit event for email notification
+        const timesheetRejectedEvent = new TimesheetRejectedEvent(
+            timesheet.id,
+            user.id,
+            user.email,
+            `${user.first_name} ${user.last_name}`,
+            timesheet.week_start_date,
+            timesheet.week_end_date,
+            approverName,
+            approver_comments || '',
+        );
+        this.eventEmitter.emit('timesheet.rejected', timesheetRejectedEvent);
+
+        return { ...updatedTimesheet, entries };
     }
 
     async getAllProjects(): Promise<any[]> {

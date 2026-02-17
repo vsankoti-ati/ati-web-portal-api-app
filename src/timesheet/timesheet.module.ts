@@ -7,11 +7,13 @@ import { TimesheetService } from '../services/timesheet.service';
 import { TimesheetController } from '../controller/timesheet.controller';
 import { ProjectController } from '../controller/project.controller';
 import { User } from '../entities/user.entity';
+import { TimesheetEventListener } from './timesheet-event.listener';
+import { EmailService } from '../auth/email.service';
 
 @Module({
     imports: [TypeOrmModule.forFeature([Timesheet, TimeEntry, Project, User])],
     controllers: [TimesheetController, ProjectController],
-    providers: [TimesheetService],
+    providers: [TimesheetService, TimesheetEventListener, EmailService],
     exports: [TimesheetService],
 })
 export class TimesheetModule { }

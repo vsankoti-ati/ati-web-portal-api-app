@@ -1,10 +1,14 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In, MoreThanOrEqual, LessThanOrEqual } from 'typeorm';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { LeaveApplication } from '../entities/leave-application.entity';
 import { Leave } from '../entities/leave.entity';
 import { User } from '../entities/user.entity';
 import { ApprovalStatusEnum } from '../enum/approval-status-enum';
+import { LeaveApprovedEvent } from '../events/leave-approved.event';
+import { LeaveRejectedEvent } from '../events/leave-rejected.event';
+import { LeaveSubmittedEvent } from '../events/leave-submitted.event';
 
 @Injectable()
 export class LeaveService {
@@ -15,6 +19,7 @@ export class LeaveService {
         private leaveRepository: Repository<Leave>,
         @InjectRepository(User)
         private userRepository: Repository<User>,
+        private eventEmitter: EventEmitter2,
     ) { }
 
     private isValidUUID(uuid: string): boolean {
@@ -56,7 +61,24 @@ export class LeaveService {
             status: leaveData.status || 'pending',
             days_requested: Math.ceil((new Date(leaveData.end_date).getTime() - new Date(leaveData.start_date).getTime()) / (1000 * 60 * 60 * 24)) + 1,
         });
-        return this.leaveAppRepository.save(application);
+        const savedApplication = await this.leaveAppRepository.save(application) as unknown as LeaveApplication;
+
+        // Emit event for email notification to admins
+        const leaveSubmittedEvent = new LeaveSubmittedEvent(
+            savedApplication.id,
+            user.id,
+            user.email,
+            `${user.first_name} ${user.last_name}`,
+            leaveData.leave_type,
+            leaveData.start_date,
+            leaveData.end_date,
+            savedApplication.days_requested,
+            leaveData.reason,
+            user.geo_location,
+        );
+        this.eventEmitter.emit('leave.submitted', leaveSubmittedEvent);
+
+        return savedApplication;
     }
 
     async approveLeave(id: string, approverComments:string, approver: any): Promise<any> {
@@ -65,10 +87,19 @@ export class LeaveService {
             throw new BadRequestException('Invalid leave application ID format. Expected a valid UUID.');
         }
         
-        // Get the leave application
-        const application = await this.leaveAppRepository.findOne({ where: { id } });
+        // Get the leave application with user details
+        const application = await this.leaveAppRepository.findOne({ 
+            where: { id },
+            relations: ['user']
+        });
         if (!application) {
             throw new NotFoundException(`Leave application with ID ${id} not found`);
+        }
+
+        // Get user details for email
+        const user = await this.userRepository.findOne({ where: { id: application.user_id } });
+        if (!user) {
+            throw new NotFoundException(`User with ID ${application.user_id} not found`);
         }
         
         // Update application status
@@ -76,7 +107,7 @@ export class LeaveService {
             status: ApprovalStatusEnum.Approved,
             approved_date: new Date(), 
             approved_by: approver.id, 
-            approver_name: approver.name,
+            approver_name: `${approver.first_name} ${approver.last_name}`,
             approver_comments: approverComments,         
         });
         
@@ -96,6 +127,21 @@ export class LeaveService {
                 year: new Date().getFullYear(),
             });
         }
+
+        // Emit event for email notification
+        const leaveApprovedEvent = new LeaveApprovedEvent(
+            application.id,
+            user.id,
+            user.email,
+            `${user.first_name} ${user.last_name}`,
+            application.leave_type,
+            application.start_date,
+            application.end_date,
+            application.days_requested,
+            `${approver.first_name} ${approver.last_name}`,
+            approverComments || '',
+        );
+        this.eventEmitter.emit('leave.approved', leaveApprovedEvent);
         
         return this.leaveAppRepository.findOne({ where: { id } });
     }
@@ -105,10 +151,45 @@ export class LeaveService {
         if (!this.isValidUUID(id)) {
             throw new BadRequestException('Invalid leave application ID format. Expected a valid UUID.');
         }
-        await this.leaveAppRepository.update(id, { status: ApprovalStatusEnum.Rejected,  approved_date: new Date(), 
+
+        // Get the leave application with user details
+        const application = await this.leaveAppRepository.findOne({ 
+            where: { id },
+            relations: ['user']
+        });
+        if (!application) {
+            throw new NotFoundException(`Leave application with ID ${id} not found`);
+        }
+
+        // Get user details for email
+        const user = await this.userRepository.findOne({ where: { id: application.user_id } });
+        if (!user) {
+            throw new NotFoundException(`User with ID ${application.user_id} not found`);
+        }
+
+        await this.leaveAppRepository.update(id, { 
+            status: ApprovalStatusEnum.Rejected,  
+            approved_date: new Date(), 
             approved_by: approver.id, 
-            approver_name: approver.name,
-            approver_comments: approverComments,    });
+            approver_name: `${approver.first_name} ${approver.last_name}`,
+            approver_comments: approverComments,    
+        });
+
+        // Emit event for email notification
+        const leaveRejectedEvent = new LeaveRejectedEvent(
+            application.id,
+            user.id,
+            user.email,
+            `${user.first_name} ${user.last_name}`,
+            application.leave_type,
+            application.start_date,
+            application.end_date,
+            application.days_requested,
+            `${approver.first_name} ${approver.last_name}`,
+            approverComments || '',
+        );
+        this.eventEmitter.emit('leave.rejected', leaveRejectedEvent);
+
         return this.leaveAppRepository.findOne({ where: { id } });
     }
 

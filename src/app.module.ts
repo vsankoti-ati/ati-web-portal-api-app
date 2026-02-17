@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { typeOrmConfig } from './config/typeorm.config';
@@ -18,6 +19,7 @@ import { Announcement } from './entities/announcement.entity';
     imports: [
         TypeOrmModule.forRoot(typeOrmConfig),
         TypeOrmModule.forFeature([Announcement]),
+        EventEmitterModule.forRoot(),
         AuthModule,
         EmployeeModule,
         LeaveModule,
