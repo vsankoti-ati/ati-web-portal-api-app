@@ -28,6 +28,27 @@ export class LeaveService {
         return uuidRegex.test(uuid);
     }
 
+    private calculateBusinessDays(startDate: Date, endDate: Date): number {
+        let count = 0;
+        const currentDate = new Date(startDate);
+        const end = new Date(endDate);
+        
+        // Ensure we're comparing dates only (without time)
+        currentDate.setHours(0, 0, 0, 0);
+        end.setHours(0, 0, 0, 0);
+        
+        while (currentDate <= end) {
+            const dayOfWeek = currentDate.getDay();
+            // 0 = Sunday, 6 = Saturday
+            if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+                count++;
+            }
+            currentDate.setDate(currentDate.getDate() + 1);
+        }
+        
+        return count;
+    }
+
     async getLeaveBalance(userId: string): Promise<any[]> {
         // Validate UUID format
         if (!this.isValidUUID(userId)) {
@@ -59,7 +80,7 @@ export class LeaveService {
             ...leaveData,
             applied_date: new Date(),
             status: leaveData.status || 'pending',
-            days_requested: Math.ceil((new Date(leaveData.end_date).getTime() - new Date(leaveData.start_date).getTime()) / (1000 * 60 * 60 * 24)) + 1,
+            days_requested: this.calculateBusinessDays(new Date(leaveData.start_date), new Date(leaveData.end_date)),
         });
         const savedApplication = await this.leaveAppRepository.save(application) as unknown as LeaveApplication;
 
