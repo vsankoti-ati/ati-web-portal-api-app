@@ -3,7 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { typeOrmConfig } from './config/typeorm.config';
+import { typeOrmConfigFactory } from './config/typeorm.config';
 import { AuthModule } from './auth/auth.module';
 import { AnnouncementsController } from './controller/announcements.controller';
 import { EmployeeModule } from './employee/employee.module';
@@ -17,7 +17,9 @@ import { Announcement } from './entities/announcement.entity';
 
 @Module({
     imports: [
-        TypeOrmModule.forRoot(typeOrmConfig),
+        TypeOrmModule.forRootAsync({
+            useFactory: typeOrmConfigFactory,
+        }),
         TypeOrmModule.forFeature([Announcement]),
         EventEmitterModule.forRoot(),
         AuthModule,

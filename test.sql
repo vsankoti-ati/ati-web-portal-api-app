@@ -15,7 +15,7 @@ select * from dbo.users
 
 select id, first_name, geo_location from dbo.employees
 
-update dbo.employees set geo_location = 'US'
+update dbo.employees set geo_location = 'Global'
 where id in ('0b438f32-1008-f111-832f-000d3afefa4d', 'e9ed58bc-0f08-f111-832f-000d3afefa4d' )
 
 update dbo.users set geo_location='US' 
@@ -68,3 +68,8 @@ select * from timesheets where user_id = 'a29b3f93-de07-f111-832f-000d3a6cbed5'
 select * from time_entries where timesheet_id = 'f3df9db6-de07-f111-832f-000d3a6cbed5'
 
 select * from holiday_calendar where client ='Bayer US'
+
+CREATE USER ati-web-portal-api FROM EXTERNAL PROVIDER;
+ALTER ROLE db_datareader ADD MEMBER [ati-web-portal-api];
+ALTER ROLE db_datawriter ADD MEMBER [ati-web-portal-api];
+

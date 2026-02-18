@@ -1,16 +1,19 @@
-import { AppDataSource } from './data-source';
+import { createDataSource } from './data-source';
 import { User } from './entities/user.entity';
 import { Employee } from './entities/employee.entity';
 import * as bcrypt from 'bcrypt';
+import { DataSource } from 'typeorm';
 
 async function seed() {
+    let dataSource: DataSource | undefined;
     try {
         console.log('Connecting to database...');
-        await AppDataSource.initialize();
+        dataSource = await createDataSource();
+        await dataSource.initialize();
         console.log('Connected!');
 
-        const userRepository = AppDataSource.getRepository(User);
-        const employeeRepository = AppDataSource.getRepository(Employee);
+        const userRepository = dataSource.getRepository(User);
+        const employeeRepository = dataSource.getRepository(Employee);
 
         // Check if admin exists
         const adminExists = await userRepository.findOne({ where: { username: 'admin' } });
@@ -103,7 +106,9 @@ async function seed() {
     } catch (error) {
         console.error('Error seeding database:', error);
     } finally {
-        await AppDataSource.destroy();
+        if (dataSource) {
+            await dataSource.destroy();
+        }
     }
 }
 
