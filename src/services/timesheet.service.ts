@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, In, MoreThanOrEqual, LessThanOrEqual, Between } from 'typeorm';
+import { Repository, In, MoreThanOrEqual, LessThanOrEqual, Between, ILike, Not } from 'typeorm';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Timesheet } from '../entities/timesheet.entity';
 import { TimeEntry } from '../entities/time-entry.entity';
@@ -28,8 +28,9 @@ export class TimesheetService {
     async getTimesheets(loggedInUser: any, userId?: string): Promise<any[]> {
         if(userId) {
             const timesheets = await this.timesheetRepository.find({ 
-                where: { user_id: userId },
-                relations: ['user']
+                where: { user_id: userId, status:  Not(ILike(`%${ApprovalStatusEnum.Cancelled}%`)) },
+                relations: ['user'],
+                order: { week_start_date: 'DESC' }
             });
             timesheets.forEach((t:any) => {
                 t.submitter = t.user ? `${t.user.first_name} ${t.user.last_name}` : 'Unknown';
@@ -38,7 +39,10 @@ export class TimesheetService {
         } else {
             const timesheets = await this.timesheetRepository.find({
                 relations: ['user'],
-                where: { user: { geo_location: loggedInUser.geo_location } }
+                where: { user: { geo_location: loggedInUser.geo_location }, 
+                        status:  Not(ILike(`%${ApprovalStatusEnum.Cancelled}%`)) 
+                },
+                order: { week_start_date: 'DESC' }
             });
             timesheets.forEach((t:any) => {
                 t.submitter = t.user ? `${t.user.first_name} ${t.user.last_name}` : 'Unknown';

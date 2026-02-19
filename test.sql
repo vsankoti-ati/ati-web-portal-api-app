@@ -69,7 +69,9 @@ select * from time_entries where timesheet_id = 'f3df9db6-de07-f111-832f-000d3a6
 
 select * from holiday_calendar where client ='Bayer US'
 
-CREATE USER ati-web-portal-api FROM EXTERNAL PROVIDER;
+CREATE USER [ati-web-portal-api] FROM EXTERNAL PROVIDER;
 ALTER ROLE db_datareader ADD MEMBER [ati-web-portal-api];
 ALTER ROLE db_datawriter ADD MEMBER [ati-web-portal-api];
+
+ALTER ROLE db_ddladmin ADD MEMBER [ati-web-portal-api];
 
