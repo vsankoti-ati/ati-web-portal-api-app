@@ -1,6 +1,7 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards, Request, UnauthorizedException } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards, Request, UnauthorizedException, Query } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { EmployeeService } from '../services/employee.service';
+import { UpdateEmployeeStatusDto } from '../dto/update-employee-status.dto';
 
 @Controller('employees')
 export class EmployeeController {
@@ -8,8 +9,9 @@ export class EmployeeController {
 
     @Get()
     @UseGuards(AuthGuard('jwt'))
-    async getAllEmployees(@Request() req) {
-        return this.employeeService.findAll(req.user);
+    async getAllEmployees(@Request() req, @Query('includeInActive') includeInActive: string) {
+        const includeInActiveBoolean = includeInActive === 'true';
+        return this.employeeService.findAll(req.user, includeInActiveBoolean);
     }
 
     @Get('email/:emailId')
@@ -50,5 +52,23 @@ export class EmployeeController {
             throw new UnauthorizedException('Only admins can delete employees');
         }
         return this.employeeService.delete(id);
+    }
+
+    @Put(':id/status')
+    @UseGuards(AuthGuard('jwt'))
+    async updateEmployeeStatus(
+        @Param('id') id: string, 
+        @Body() updateStatusDto: UpdateEmployeeStatusDto, 
+        @Request() req
+    ) {
+        if (req.user?.role !== 'Admin' && req.user?.role !== 'HR') {
+            throw new UnauthorizedException('Only Admin or HR can update employee status');
+        }
+        return this.employeeService.updateEmployeeStatus(
+            id, 
+            updateStatusDto.employee_status, 
+            updateStatusDto.admin_comments,
+            req.user?.id
+        );
     }
 }

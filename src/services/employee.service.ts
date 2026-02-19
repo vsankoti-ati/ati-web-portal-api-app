@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { Employee } from '../entities/employee.entity';
 import { EmployeeEnum } from '../enum/employee-enum';
+import { EmployeeStatusEnum } from 'src/enum/employee-status-enum';
 
 @Injectable()
 export class EmployeeService {
@@ -11,8 +12,9 @@ export class EmployeeService {
         private employeeRepository: Repository<Employee>,
     ) { }
 
-    async findAll(user: any): Promise<any[]> {
-        const result = await this.employeeRepository.find({where : { is_active: true, geo_location: In([user.geo_location, EmployeeEnum.GLOBAL]) }});
+    async findAll(user: any, includeInActive:boolean = false): Promise<any[]> {
+
+        const result = await this.employeeRepository.find({where : { employee_status: !includeInActive ? EmployeeStatusEnum.ACTIVE : In([EmployeeStatusEnum.INACTIVE, EmployeeStatusEnum.ACTIVE]), geo_location: In([user.geo_location, EmployeeEnum.GLOBAL]) }});
         return result;
     }
 
@@ -36,5 +38,15 @@ export class EmployeeService {
 
     async delete(id: string): Promise<void> {
         await this.employeeRepository.delete(id);
+    }
+
+    async updateEmployeeStatus(id: string, employee_status: string, admin_comments: string, admin_user_id: string): Promise<any> {
+        await this.employeeRepository.update(id, { 
+            employee_status, 
+            admin_comments,
+            updated_at: new Date(),
+            is_active: employee_status === 'Active' ? true : false
+        });
+        return this.findOne(id);
     }
 }

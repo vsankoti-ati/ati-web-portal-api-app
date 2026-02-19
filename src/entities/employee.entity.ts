@@ -1,3 +1,4 @@
+import { EmployeeStatusEnum } from '../enum/employee-status-enum';
 import { EmployeeEnum } from '../enum/employee-enum';
 import { EmployeeTypeEnum } from '../enum/employee-type-enum';
 import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
@@ -39,6 +40,12 @@ export class Employee {
 
     @Column({ nullable: false, default: EmployeeTypeEnum.FULL_TIME })
     type: EmployeeTypeEnum; // Full-time/Part-time/Contract
+
+    @Column({ nullable: false, default: EmployeeStatusEnum.ACTIVE })
+    employee_status: string; // Active/Inactive/Terminated
+
+    @Column({ nullable: true })
+    admin_notes: string; // For HR/Admin to add notes about the employee
 
     @CreateDateColumn()
     created_at: Date;
