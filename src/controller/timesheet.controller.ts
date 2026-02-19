@@ -1,9 +1,13 @@
 import { Controller, Get, Post, Patch, Body, Param, UseGuards, Request, Query, UnauthorizedException } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam } from '@nestjs/swagger';
 import { TimesheetService } from '../services/timesheet.service';
+import { CancelRequestDto } from '../dto/cancel-request.dto';
 
+@ApiTags('Timesheets')
 @Controller('timesheets')
 @UseGuards(AuthGuard('jwt'))
+@ApiBearerAuth('JWT-auth')
 export class TimesheetController {
     constructor(private timesheetService: TimesheetService) { }
 
@@ -49,7 +53,18 @@ export class TimesheetController {
         if (req.user?.role !== 'Admin') {
             throw new UnauthorizedException('Only admins can reject timesheets');
         }
-        return this.timesheetService.rejectTimesheet(id, body.approver_comments, req.user?.userId);
+        return this.timesheetService.rejectTimesheet(id, body.submitter_comments, req.user?.userId);
+    }
+
+    @Patch(':id/cancel')
+    @ApiOperation({ summary: 'Cancel timesheet', description: 'Cancel your own timesheet' })
+    @ApiParam({ name: 'id', description: 'Timesheet ID' })
+    @ApiResponse({ status: 200, description: 'Timesheet cancelled successfully' })
+    @ApiResponse({ status: 400, description: 'Invalid request or timesheet cannot be cancelled' })
+    @ApiResponse({ status: 401, description: 'Unauthorized - Can only cancel own timesheets' })
+    @ApiResponse({ status: 404, description: 'Timesheet not found' })
+    async cancelTimesheet(@Param('id') id: string, @Body() cancelData: CancelRequestDto, @Request() req) {
+        return this.timesheetService.cancelTimesheet(id, cancelData.reason, req.user?.userId);
     }
 
     @Get('projects/all')

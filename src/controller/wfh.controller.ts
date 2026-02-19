@@ -2,6 +2,7 @@ import { Controller, Get, Post, Patch, Body, Param, UseGuards, Request, Query, U
 import { AuthGuard } from '@nestjs/passport';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiBody, ApiQuery, ApiParam } from '@nestjs/swagger';
 import { WfhService } from '../services/wfh.service';
+import { CancelRequestDto } from '../dto/cancel-request.dto';
 
 @ApiTags('Work From Home')
 @Controller('wfh')
@@ -84,5 +85,16 @@ export class WfhController {
             throw new UnauthorizedException('Only admins can reject WFH requests');
         }
         return this.wfhService.rejectWfhRequest(id, rejectDetails.comments || '', req.user);
+    }
+
+    @Patch(':id/cancel')
+    @ApiOperation({ summary: 'Cancel WFH request', description: 'Cancel your own WFH request' })
+    @ApiParam({ name: 'id', description: 'WFH request ID' })
+    @ApiResponse({ status: 200, description: 'WFH request cancelled successfully' })
+    @ApiResponse({ status: 400, description: 'Invalid request or WFH request cannot be cancelled' })
+    @ApiResponse({ status: 401, description: 'Unauthorized - Can only cancel own WFH requests' })
+    @ApiResponse({ status: 404, description: 'WFH request not found' })
+    async cancelWfhRequest(@Param('id') id: string, @Body() cancelData: CancelRequestDto, @Request() req) {
+        return this.wfhService.cancelWfhRequest(id, cancelData.reason, req.user?.userId);
     }
 }

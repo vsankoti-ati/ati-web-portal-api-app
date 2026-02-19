@@ -207,4 +207,56 @@ export class WfhService {
         
         return this.wfhRepository.findOne({ where: { id }, relations: ['user'] });
     }
+
+    async cancelWfhRequest(id: string, cancelReason: string, userId: string): Promise<WorkFromHomeRequest> {
+        // Validate UUID format
+        if (!this.isValidUUID(id)) {
+            throw new BadRequestException('Invalid WFH request ID format. Expected a valid UUID.');
+        }
+
+        // Get the WFH request
+        const request = await this.wfhRepository.findOne({ 
+            where: { id },
+            relations: ['user']
+        });
+        
+        if (!request) {
+            throw new NotFoundException(`WFH request with ID ${id} not found`);
+        }
+
+        // Check if the user owns this WFH request
+        if (request.user_id !== userId) {
+            throw new UnauthorizedException('You can only cancel your own WFH requests');
+        }
+
+        // Check if request is in a cancellable state
+        const cancellableStatuses = ['Pending', 'Approved'];
+        if (!cancellableStatuses.includes(request.status)) {
+            throw new BadRequestException(`Cannot cancel WFH request with status: ${request.status}`);
+        }
+
+        // Check if the request is approved and the start date is in the past
+        if (request.status === 'Approved') {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            // Parse the start date
+            const startDate = request.start_date instanceof Date 
+                ? request.start_date 
+                : new Date(request.start_date);
+            startDate.setHours(0, 0, 0, 0);
+            
+            if (startDate < today) {
+                throw new BadRequestException('Cannot cancel an approved WFH request that has already started or is in the past');
+            }
+        }
+
+        // Update request status to cancelled and update reason
+        await this.wfhRepository.update(id, { 
+            status: 'Cancelled',
+            reason: cancelReason,
+        });
+
+        return this.wfhRepository.findOne({ where: { id }, relations: ['user'] });
+    }
 }

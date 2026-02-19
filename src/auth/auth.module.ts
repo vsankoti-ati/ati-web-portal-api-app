@@ -27,6 +27,6 @@ import { JWT_SECRET } from '../config/jwt.config';
 })
 export class AuthModule {
     constructor() {
-        console.log('🔧 [AuthModule] Initialized with JWT_SECRET:', JWT_SECRET);
+        console.log('AuthModule initialized');
     }
 }

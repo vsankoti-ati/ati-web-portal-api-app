@@ -36,4 +36,7 @@ export class Timesheet {
 
     @CreateDateColumn()
     created_at: Date;
+
+    @Column({ nullable: true })
+    submitter_comments: string;
 }

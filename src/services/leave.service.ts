@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In, MoreThanOrEqual, LessThanOrEqual } from 'typeorm';
 import { EventEmitter2 } from '@nestjs/event-emitter';
@@ -28,22 +28,40 @@ export class LeaveService {
         return uuidRegex.test(uuid);
     }
 
-    private calculateBusinessDays(startDate: Date, endDate: Date): number {
-        let count = 0;
-        const currentDate = new Date(startDate);
-        const end = new Date(endDate);
+    private parseDateAsUTC(dateInput: string | Date): string {
+        if (!dateInput) return dateInput as string;
         
-        // Ensure we're comparing dates only (without time)
-        currentDate.setHours(0, 0, 0, 0);
-        end.setHours(0, 0, 0, 0);
+        let dateStr: string;
+        if (dateInput instanceof Date) {
+            dateStr = dateInput.toISOString().split('T')[0];
+        } else if (typeof dateInput === 'string') {
+            // Extract just the date part (YYYY-MM-DD)
+            dateStr = dateInput.split('T')[0];
+        } else {
+            throw new BadRequestException('Invalid date format');
+        }
+        
+        // Return as date-only string
+        return dateStr;
+    }
+
+    private calculateBusinessDays(startDate: Date | string, endDate: Date | string): number {
+        let count = 0;
+        
+        // Parse as UTC dates to avoid timezone issues
+        const startStr = typeof startDate === 'string' ? startDate.split('T')[0] : startDate.toISOString().split('T')[0];
+        const endStr = typeof endDate === 'string' ? endDate.split('T')[0] : endDate.toISOString().split('T')[0];
+        
+        const currentDate = new Date(startStr + 'T00:00:00.000Z');
+        const end = new Date(endStr + 'T00:00:00.000Z');
         
         while (currentDate <= end) {
-            const dayOfWeek = currentDate.getDay();
+            const dayOfWeek = currentDate.getUTCDay();
             // 0 = Sunday, 6 = Saturday
             if (dayOfWeek !== 0 && dayOfWeek !== 6) {
                 count++;
             }
-            currentDate.setDate(currentDate.getDate() + 1);
+            currentDate.setUTCDate(currentDate.getUTCDate() + 1);
         }
         
         return count;
@@ -60,8 +78,8 @@ export class LeaveService {
 
     async getLeaveApplications(user: any, userId?: string): Promise<any[]> {
         const userLeaves = userId
-            ? await this.leaveAppRepository.find({ where: { user_id: userId, user: { geo_location: user.geo_location } }, relations: ['user'] })
-            : await this.leaveAppRepository.find({ where: {user: {geo_location: user.geo_location }}, relations: ['user'] });
+            ? await this.leaveAppRepository.find({ where: { user_id: userId, user: { geo_location: user.geo_location } }, relations: ['user'], order: { applied_date: 'DESC' } })
+            : await this.leaveAppRepository.find({ where: {user: {geo_location: user.geo_location }}, relations: ['user'], order: { applied_date: 'DESC' } });
         
         return userLeaves;
     }
@@ -76,11 +94,17 @@ export class LeaveService {
             throw new NotFoundException(`User with ID ${leaveData.user_id} not found`);
         }
         
+        // Parse dates explicitly as UTC date-only (no time component)
+        const startDate = this.parseDateAsUTC(leaveData.start_date);
+        const endDate = this.parseDateAsUTC(leaveData.end_date);
+        
         const application = this.leaveAppRepository.create({
             ...leaveData,
+            start_date: startDate,
+            end_date: endDate,
             applied_date: new Date(),
             status: leaveData.status || 'pending',
-            days_requested: this.calculateBusinessDays(new Date(leaveData.start_date), new Date(leaveData.end_date)),
+            days_requested: this.calculateBusinessDays(startDate, endDate),
         });
         const savedApplication = await this.leaveAppRepository.save(application) as unknown as LeaveApplication;
 
@@ -210,6 +234,76 @@ export class LeaveService {
             approverComments || '',
         );
         this.eventEmitter.emit('leave.rejected', leaveRejectedEvent);
+
+        return this.leaveAppRepository.findOne({ where: { id } });
+    }
+
+    async cancelLeave(id: string, cancelReason: string, userId: string): Promise<any> {
+        // Validate UUID format
+        if (!this.isValidUUID(id)) {
+            throw new BadRequestException('Invalid leave application ID format. Expected a valid UUID.');
+        }
+
+        // Get the leave application
+        const application = await this.leaveAppRepository.findOne({ 
+            where: { id },
+            relations: ['user']
+        });
+        
+        if (!application) {
+            throw new NotFoundException(`Leave application with ID ${id} not found`);
+        }
+
+        // Check if the user owns this leave application
+        if (application.user_id !== userId) {
+            throw new UnauthorizedException('You can only cancel your own leave applications');
+        }
+
+        // Check if leave is in a cancellable state (only pending, submitted, or approved leaves can be cancelled)
+        const cancellableStatuses = ['Pending', 'pending', ApprovalStatusEnum.Submitted, ApprovalStatusEnum.Approved, 'Approved', 'approved'];
+        if (!cancellableStatuses.includes(application.status)) {
+            throw new BadRequestException(`Cannot cancel leave with status: ${application.status}`);
+        }
+
+        // Check if the leave is approved and the start date is in the past
+        const isApproved = application.status === 'Approved' || application.status === 'approved' || application.status === ApprovalStatusEnum.Approved;
+        if (isApproved) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            // Parse the start date as UTC to avoid timezone issues (use the helper method)
+            const startDateStr = this.parseDateAsUTC(application.start_date as any);
+            const leaveStartDate = new Date(startDateStr + 'T00:00:00.000Z');
+            
+            if (leaveStartDate < today) {
+                throw new BadRequestException('Cannot cancel an approved leave that has already started or is in the past');
+            }
+        }
+
+        // If the leave was already approved, restore the leave balance
+        if (isApproved) {
+            const leaveBalance = await this.leaveRepository.findOne({
+                where: {
+                    user_id: application.user_id,
+                    leave_type: application.leave_type
+                }
+            });
+            
+            if (leaveBalance) {
+                await this.leaveRepository.save({
+                    id: leaveBalance.id,
+                    used_days: leaveBalance.used_days - application.days_requested,
+                    remaining_days: leaveBalance.remaining_days + application.days_requested,
+                    year: new Date().getFullYear(),
+                });
+            }
+        }
+
+        // Update application status to cancelled and update reason
+        await this.leaveAppRepository.update(id, { 
+            status: 'Cancelled',
+            reason: cancelReason,
+        });
 
         return this.leaveAppRepository.findOne({ where: { id } });
     }

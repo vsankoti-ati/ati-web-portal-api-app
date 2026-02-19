@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In, MoreThanOrEqual, LessThanOrEqual, Between } from 'typeorm';
 import { EventEmitter2 } from '@nestjs/event-emitter';
@@ -188,6 +188,57 @@ export class TimesheetService {
             approver_comments || '',
         );
         this.eventEmitter.emit('timesheet.rejected', timesheetRejectedEvent);
+
+        return { ...updatedTimesheet, entries };
+    }
+
+    async cancelTimesheet(id: string, cancelReason: string, userId: string): Promise<any> {
+        // Get the timesheet
+        const timesheet = await this.timesheetRepository.findOne({ 
+            where: { id },
+            relations: ['user']
+        });
+        
+        if (!timesheet) {
+            throw new NotFoundException(`Timesheet with ID ${id} not found`);
+        }
+
+        // Check if the user owns this timesheet
+        if (timesheet.user_id !== userId) {
+            throw new UnauthorizedException('You can only cancel your own timesheets');
+        }
+
+        // Check if timesheet is in a cancellable state
+        const cancellableStatuses = ['draft', 'submitted', 'approved', ApprovalStatusEnum.Draft, ApprovalStatusEnum.Submitted, ApprovalStatusEnum.Approved];
+        if (!cancellableStatuses.includes(timesheet.status)) {
+            throw new BadRequestException(`Cannot cancel timesheet with status: ${timesheet.status}`);
+        }
+
+        // Check if the timesheet is approved and the week has already started
+        const isApproved = timesheet.status === 'approved' || timesheet.status === ApprovalStatusEnum.Approved;
+        if (isApproved) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            // Parse the week start date
+            const weekStartDate = timesheet.week_start_date instanceof Date 
+                ? timesheet.week_start_date 
+                : new Date(timesheet.week_start_date);
+            weekStartDate.setHours(0, 0, 0, 0);
+            
+            if (weekStartDate < today) {
+                throw new BadRequestException('Cannot cancel an approved timesheet for a week that has already started or is in the past');
+            }
+        }
+
+        // Update timesheet status to cancelled
+        await this.timesheetRepository.update(id, { 
+            status: 'cancelled',
+            approver_comments: cancelReason,
+        });
+
+        const updatedTimesheet = await this.timesheetRepository.findOne({ where: { id }  });
+        const entries = await this.timeEntryRepository.find({ where: { timesheet_id: id }, relations: ['project'] });
 
         return { ...updatedTimesheet, entries };
     }
