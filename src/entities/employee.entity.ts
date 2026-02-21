@@ -47,6 +47,22 @@ export class Employee {
     @Column({ nullable: true })
     admin_notes: string; // For HR/Admin to add notes about the employee
 
+    // Address fields
+    @Column({ nullable: true })
+    address_line_one: string;
+
+    @Column({ nullable: true })
+    address_line_two: string;
+
+    @Column({ nullable: true })
+    city: string;
+
+    @Column({ nullable: true })
+    state: string;
+    
+    @Column({ nullable: true })
+    postal_code: string; 
+
     @CreateDateColumn()
     created_at: Date;
 
