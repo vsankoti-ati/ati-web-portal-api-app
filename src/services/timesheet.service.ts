@@ -26,9 +26,17 @@ export class TimesheetService {
     ) { }
 
     async getTimesheets(loggedInUser: any, userId?: string): Promise<any[]> {
+        // Calculate date 3 months ago
+        const threeMonthsAgo = new Date();
+        threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+
         if(userId) {
             const timesheets = await this.timesheetRepository.find({ 
-                where: { user_id: userId, status:  Not(ILike(`%${ApprovalStatusEnum.Cancelled}%`)) },
+                where: { 
+                    user_id: userId, 
+                    status: Not(ILike(`%${ApprovalStatusEnum.Cancelled}%`)),
+                    week_start_date: MoreThanOrEqual(threeMonthsAgo)
+                },
                 relations: ['user'],
                 order: { week_start_date: 'DESC' }
             });
@@ -39,8 +47,10 @@ export class TimesheetService {
         } else {
             const timesheets = await this.timesheetRepository.find({
                 relations: ['user'],
-                where: { user: { geo_location: loggedInUser.geo_location }, 
-                        status:  Not(ILike(`%${ApprovalStatusEnum.Cancelled}%`)) 
+                where: { 
+                    user: { geo_location: loggedInUser.geo_location }, 
+                    status: Not(ILike(`%${ApprovalStatusEnum.Cancelled}%`)),
+                    week_start_date: MoreThanOrEqual(threeMonthsAgo)
                 },
                 order: { week_start_date: 'DESC' }
             });

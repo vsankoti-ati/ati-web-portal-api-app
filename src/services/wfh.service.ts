@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, MoreThanOrEqual } from 'typeorm';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { WorkFromHomeRequest } from '../entities/work-from-home-request.entity';
 import { User } from '../entities/user.entity';
@@ -73,6 +73,10 @@ export class WfhService {
     }
 
     async getWfhRequests(user: any, userId?: string): Promise<WorkFromHomeRequest[]> {
+        // Calculate date 3 months ago
+        const threeMonthsAgo = new Date();
+        threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+
         // If admin, can see all requests
         // If employee, can only see their own requests
         if (user.role === 'Admin') {
@@ -82,14 +86,14 @@ export class WfhService {
                     throw new BadRequestException('Invalid user ID format. Expected a valid UUID.');
                 }
                 return this.wfhRepository.find({ 
-                    where: { user_id: userId },
+                    where: { user_id: userId, created_at: MoreThanOrEqual(threeMonthsAgo) },
                     relations: ['user'],
                     order: { created_at: 'DESC' }
                 });
             } else {
                 // Admin requesting all requests
                 return this.wfhRepository.find({ 
-                    where: {user: { geo_location: user.geo_location }},
+                    where: {user: { geo_location: user.geo_location }, created_at: MoreThanOrEqual(threeMonthsAgo)},
                     relations: ['user'],
                     order: { created_at: 'DESC' }
                 });
@@ -97,7 +101,7 @@ export class WfhService {
         } else {
             // Employee can only see their own requests
             return this.wfhRepository.find({ 
-                where: { user_id: user.userId },
+                where: { user_id: user.userId, created_at: MoreThanOrEqual(threeMonthsAgo) },
                 relations: ['user'],
                 order: { created_at: 'DESC' }
             });

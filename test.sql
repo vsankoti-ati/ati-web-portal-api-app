@@ -1,5 +1,7 @@
 select id,username,geo_location from dbo.users
 
+select * from dbo.migrations
+
 select * from dbo.leave_applications where user_id='e2c7c7f8-6007-f111-832e-000d3af648bd'
 
 update dbo.leave_applications set approver_comments = 'rejected' where id = 'cda4951c-6807-f111-8330-000d3a6cf769'

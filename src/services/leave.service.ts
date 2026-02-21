@@ -77,9 +77,13 @@ export class LeaveService {
     }
 
     async getLeaveApplications(user: any, userId?: string): Promise<any[]> {
+        // Calculate date 3 months ago
+        const threeMonthsAgo = new Date();
+        threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+
         const userLeaves = userId
-            ? await this.leaveAppRepository.find({ where: { user_id: userId, user: { geo_location: user.geo_location } }, relations: ['user'], order: { applied_date: 'DESC' } })
-            : await this.leaveAppRepository.find({ where: {user: {geo_location: user.geo_location }}, relations: ['user'], order: { applied_date: 'DESC' } });
+            ? await this.leaveAppRepository.find({ where: { user_id: userId, user: { geo_location: user.geo_location }, applied_date: MoreThanOrEqual(threeMonthsAgo) }, relations: ['user'], order: { applied_date: 'DESC' } })
+            : await this.leaveAppRepository.find({ where: {user: {geo_location: user.geo_location }, applied_date: MoreThanOrEqual(threeMonthsAgo)}, relations: ['user'], order: { applied_date: 'DESC' } });
         
         return userLeaves;
     }
