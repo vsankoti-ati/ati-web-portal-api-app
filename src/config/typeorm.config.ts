@@ -44,16 +44,17 @@ const baseConfig: Partial<TypeOrmModuleOptions> = {
         HolidayCalendar,
         Announcement,
         WorkFromHomeRequest,
-        Address,
-        Document,
-        JobOpening,
-        JobReferral,
-        Candidate,
+        // Commented out entities without database tables yet:
+        // Address,
+        // Document,
+        // JobOpening,
+        // JobReferral,
+        // Candidate,
     ],
     migrations: [__dirname + '/../migrations/**/*{.ts,.js}'],
     synchronize: false,
-    migrationsRun: false,
-    logging: process.env.NODE_ENV === 'development',
+    migrationsRun: true,
+    logging: true,
 };
 
 // Async factory for TypeORM configuration with managed identity support
