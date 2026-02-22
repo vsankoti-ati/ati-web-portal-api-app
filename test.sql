@@ -1,8 +1,21 @@
 select id,username,geo_location from dbo.users
 
+
+delete  from dbo.timesheets
+
+delete from dbo.time_entries
+
+select * from dbo.leaves
 select * from dbo.migrations
 
-select * from dbo.leave_applications where user_id='e2c7c7f8-6007-f111-832e-000d3af648bd'
+delete from dbo.work_from_home_requests
+
+select * from dbo.leave_applications where user_id='a29b3f93-de07-f111-832f-000d3a6cbed5'
+
+delete from dbo.leave_applications where user_id='a29b3f93-de07-f111-832f-000d3a6cbed5'
+
+select * from dbo.leaves
+delete from dbo.leaves where user_id='a29b3f93-de07-f111-832f-000d3a6cbed5'
 
 update dbo.leave_applications set approver_comments = 'rejected' where id = 'cda4951c-6807-f111-8330-000d3a6cf769'
 
