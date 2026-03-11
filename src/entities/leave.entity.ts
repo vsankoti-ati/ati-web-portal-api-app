@@ -16,13 +16,13 @@ export class Leave {
     @Column()
     leave_type: string; // Earned/Holiday/UnPaid
 
-    @Column({ type: 'int' })
+    @Column({ type: 'decimal', precision: 5, scale: 2 })
     total_days: number;
 
-    @Column({ type: 'int', default: 0 })
+    @Column({ type: 'decimal', precision: 5, scale: 2, default: 0 })
     used_days: number;
 
-    @Column({ type: 'int' })
+    @Column({ type: 'decimal', precision: 5, scale: 2 })
     remaining_days: number;
 
     @Column({ type: 'int' })
