@@ -12,6 +12,19 @@ import { CancelLeaveDto } from '../dto/cancel-leave.dto';
 export class LeaveController {
     constructor(private leaveService: LeaveService) { }
 
+    @Get('balances/all')
+    @ApiOperation({ summary: 'Get leave balances for all employees', description: 'Admin and HR only' })
+    @ApiQuery({ name: 'year', required: false, description: 'Year to get balances for (defaults to current year)' })
+    @ApiResponse({ status: 200, description: 'Leave balances retrieved successfully' })
+    @ApiResponse({ status: 401, description: 'Unauthorized - Only Admin or HR can access this endpoint' })
+    async getAllLeaveBalances(@Query('year') year: string, @Request() req) {
+        if (req.user?.role !== 'Admin' && req.user?.role !== 'HR') {
+            throw new UnauthorizedException('Only Admin or HR can view all leave balances');
+        }
+        const yearNumber = year ? parseInt(year, 10) : undefined;
+        return this.leaveService.getAllLeaveBalances(req.user, yearNumber);
+    }
+
     @Get('balance/:userId')
     @ApiOperation({ summary: 'Get leave balance for a user' })
     @ApiParam({ name: 'userId', description: 'User ID' })

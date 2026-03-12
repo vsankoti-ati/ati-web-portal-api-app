@@ -518,4 +518,47 @@ export class LeaveService {
             },
         };
     }
+
+    async getAllLeaveBalances(loggedInUser: any, year?: number): Promise<any[]> {
+        const currentYear = year || new Date().getFullYear();
+        
+        // Get all leave balances with user details for the specified year
+        const leaveBalances = await this.leaveRepository.find({
+            where: { year: currentYear, user: { geo_location: loggedInUser.geo_location } },
+            relations: ['user'],
+            order: {
+                user_id: 'ASC',
+                leave_type: 'ASC'
+            }
+        });
+
+        // Group balances by user for better readability
+        const balancesByUser = leaveBalances.reduce((acc, balance) => {
+            const userId = balance.user_id;
+            
+            if (!acc[userId]) {
+                acc[userId] = {
+                    userId: balance.user.id,
+                    username: balance.user.username,
+                    email: balance.user.email,
+                    firstName: balance.user.first_name,
+                    lastName: balance.user.last_name,
+                    employeeId: balance.user.employee_id,
+                    balances: []
+                };
+            }
+            
+            acc[userId].balances.push({
+                leaveType: balance.leave_type,
+                year: balance.year,
+                totalDays: balance.total_days,
+                usedDays: balance.used_days,
+                remainingDays: balance.remaining_days
+            });
+            
+            return acc;
+        }, {});
+
+        return Object.values(balancesByUser);
+    }
 }
