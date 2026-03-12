@@ -46,7 +46,7 @@ export class LeaveApplication {
     @Column({ type: 'date', transformer: dateOnlyTransformer })
     end_date: Date;
 
-    @Column({ type: 'int' })
+    @Column({ type: 'decimal', precision: 3, scale: 2 })
     days_requested: number;
 
     @Column({ type: 'nvarchar', length: 'MAX' })

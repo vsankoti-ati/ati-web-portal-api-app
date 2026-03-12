@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, IsDateString, IsUUID, IsOptional } from 'class-validator';
+import { IsNotEmpty, IsString, IsDateString, IsUUID, IsOptional, IsNumber, IsIn } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class ApplyLeaveDto {
@@ -31,4 +31,16 @@ export class ApplyLeaveDto {
     @IsString()
     @IsOptional()
     status?: string;
+
+    @ApiProperty({ example: 1, description: 'Length of the start day: 0.5 for half day, 1 for full day', required: false })
+    @IsNumber()
+    @IsIn([0.5, 1])
+    @IsOptional()
+    start_day_length?: number;
+
+    @ApiProperty({ example: 1, description: 'Length of the end day: 0.5 for half day, 1 for full day', required: false })
+    @IsNumber()
+    @IsIn([0.5, 1])
+    @IsOptional()
+    end_day_length?: number;
 }

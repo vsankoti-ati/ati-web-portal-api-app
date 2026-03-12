@@ -45,7 +45,12 @@ export class LeaveService {
         return dateStr;
     }
 
-    private calculateBusinessDays(startDate: Date | string, endDate: Date | string): number {
+    private calculateBusinessDays(
+        startDate: Date | string, 
+        endDate: Date | string,
+        startDayLength: number = 1,
+        endDayLength: number = 1
+    ): number {
         let count = 0;
         
         // Parse as UTC dates to avoid timezone issues
@@ -55,11 +60,39 @@ export class LeaveService {
         const currentDate = new Date(startStr + 'T00:00:00.000Z');
         const end = new Date(endStr + 'T00:00:00.000Z');
         
+        let isFirstBusinessDay = true;
+        
         while (currentDate <= end) {
             const dayOfWeek = currentDate.getUTCDay();
             // 0 = Sunday, 6 = Saturday
             if (dayOfWeek !== 0 && dayOfWeek !== 6) {
-                count++;
+                // Check if this is the last business day
+                const tempDate = new Date(currentDate);
+                tempDate.setUTCDate(tempDate.getUTCDate() + 1);
+                let isLastBusinessDay = true;
+                
+                // Check if there are any more business days after this one
+                while (tempDate <= end) {
+                    const tempDayOfWeek = tempDate.getUTCDay();
+                    if (tempDayOfWeek !== 0 && tempDayOfWeek !== 6) {
+                        isLastBusinessDay = false;
+                        break;
+                    }
+                    tempDate.setUTCDate(tempDate.getUTCDate() + 1);
+                }
+                
+                // Apply partial day logic
+                if (isFirstBusinessDay && startStr === endStr) {
+                    // Single day leave - use the minimum of start and end day lengths
+                    count += Math.min(startDayLength, endDayLength);
+                } else if (isFirstBusinessDay) {
+                    count += startDayLength;
+                    isFirstBusinessDay = false;
+                } else if (isLastBusinessDay) {
+                    count += endDayLength;
+                } else {
+                    count += 1;
+                }
             }
             currentDate.setUTCDate(currentDate.getUTCDate() + 1);
         }
@@ -102,13 +135,17 @@ export class LeaveService {
         const startDate = this.parseDateAsUTC(leaveData.start_date);
         const endDate = this.parseDateAsUTC(leaveData.end_date);
         
+        // Default to full day (1) if not specified
+        const startDayLength = leaveData.start_day_length ?? 1;
+        const endDayLength = leaveData.end_day_length ?? 1;
+        
         const application = this.leaveAppRepository.create({
             ...leaveData,
             start_date: startDate,
             end_date: endDate,
             applied_date: new Date(),
             status: leaveData.status || 'pending',
-            days_requested: this.calculateBusinessDays(startDate, endDate),
+            days_requested: this.calculateBusinessDays(startDate, endDate, startDayLength, endDayLength),
         });
         const savedApplication = await this.leaveAppRepository.save(application) as unknown as LeaveApplication;
 
